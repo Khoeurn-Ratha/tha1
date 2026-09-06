@@ -3,7 +3,7 @@ let cycleChartInstance = null;
 let allTradesData = [];
 let currentFilter = 'all';
 
-// Current session state
+// Session state from localStorage
 let currentUser = {
     token: localStorage.getItem('tracker_token') || null,
     role: localStorage.getItem('tracker_role') || 'user',
@@ -48,7 +48,7 @@ async function verifyAuth() {
             setViewerState();
         }
     } catch (e) {
-        console.warn('Auth verify skipped:', e);
+        console.warn('Auth check skipped:', e);
     }
     renderAuthUI();
 }
@@ -73,45 +73,57 @@ function renderAuthUI() {
     if (footerRole) footerRole.textContent = currentUser.displayName;
 
     if (currentUser.role === 'admin') {
-        // Admin controls visible
         adminElements.forEach(el => el.classList.remove('hidden'));
         if (viewerBanner) viewerBanner.classList.add('hidden');
 
         if (userContainer) {
             userContainer.innerHTML = `
                 <div class="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300">
-                    <span>👑</span>
+                    <span class="text-xs">👑</span>
                     <span class="hidden sm:inline">${currentUser.displayName}</span>
                 </div>
-                <button onclick="logout()" title="Log out" class="p-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:text-red-400 text-slate-400 text-xs transition">
+                <button onclick="logout()" title="Sign out" class="p-2 rounded-xl bg-black/40 border border-white/10 hover:text-rose-400 text-slate-400 text-xs transition">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 </button>
             `;
         }
     } else {
-        // Viewer mode: hide admin controls
         adminElements.forEach(el => el.classList.add('hidden'));
         if (viewerBanner) viewerBanner.classList.remove('hidden');
 
         if (userContainer) {
             userContainer.innerHTML = `
-                <div class="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-400">
-                    <i class="fa-solid fa-eye"></i>
+                <div class="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-400">
+                    <i class="fa-solid fa-eye text-xs"></i>
                     <span class="hidden sm:inline">Viewer</span>
                 </div>
-                <button onclick="openLoginModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-lock text-amber-400"></i>
-                    <span>Admin Login</span>
+                <button onclick="openLoginModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-white/10 transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
+                    <span>Sign In</span>
                 </button>
             `;
         }
     }
 
-    // Re-render table to display or hide edit/delete buttons
     renderTradesTable(allTradesData);
 }
 
-// Format ISO date to local datetime-local string
+// Toggle password visibility in login modal
+function togglePasswordVisibility() {
+    const pwdInput = document.getElementById('loginPassword');
+    const icon = document.getElementById('passwordEyeIcon');
+    if (!pwdInput) return;
+
+    if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        pwdInput.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+    }
+}
+
+// Format ISO date to local input format
 function setDefaultDateTime() {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -180,10 +192,10 @@ function updateDashboard(data) {
     if (pill1 && pill2) {
         pill1.className = todayCount >= 1 
             ? 'w-4 h-9 rounded-lg bg-blue-500 shadow-lg shadow-blue-500/40 border border-blue-400' 
-            : 'w-4 h-9 rounded-lg bg-slate-800 border border-slate-700';
+            : 'w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10';
         pill2.className = todayCount >= 2 
             ? 'w-4 h-9 rounded-lg bg-indigo-500 shadow-lg shadow-indigo-500/40 border border-indigo-400' 
-            : 'w-4 h-9 rounded-lg bg-slate-800 border border-slate-700';
+            : 'w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10';
     }
 
     // Daily limit warning
@@ -223,7 +235,6 @@ function updateDashboard(data) {
 
 // Render Line Chart and Donut Chart
 function renderCharts(balanceHistory, stats) {
-    // 1. Line Chart
     const ctxLine = document.getElementById('balanceChart').getContext('2d');
     const labels = balanceHistory.map(item => item.date);
     const balanceData = balanceHistory.map(item => item.balance);
@@ -240,7 +251,7 @@ function renderCharts(balanceHistory, stats) {
                     label: 'Balance ($)',
                     data: balanceData,
                     borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.25,
@@ -268,7 +279,7 @@ function renderCharts(balanceHistory, stats) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#151A23',
+                    backgroundColor: '#121826',
                     titleColor: '#F8FAFC',
                     bodyColor: '#CBD5E1',
                     borderColor: '#334155',
@@ -298,7 +309,6 @@ function renderCharts(balanceHistory, stats) {
         }
     });
 
-    // 2. Cycle Donut Chart
     const ctxCycle = document.getElementById('cycleChart').getContext('2d');
     const wins = stats.wins || 0;
     const losses = stats.losses || 0;
@@ -306,7 +316,7 @@ function renderCharts(balanceHistory, stats) {
 
     const hasData = (wins + losses + breakeven) > 0;
     const cycleData = hasData ? [wins, losses, breakeven] : [1];
-    const cycleColors = hasData ? ['#10B981', '#F43F5E', '#64748B'] : ['#1E293B'];
+    const cycleColors = hasData ? ['#10B981', '#F43F5E', '#64748B'] : ['#1A2234'];
 
     if (cycleChartInstance) cycleChartInstance.destroy();
 
@@ -329,7 +339,7 @@ function renderCharts(balanceHistory, stats) {
                 legend: { display: false },
                 tooltip: {
                     enabled: hasData,
-                    backgroundColor: '#151A23',
+                    backgroundColor: '#121826',
                     borderColor: '#334155',
                     borderWidth: 1,
                     padding: 10
@@ -339,7 +349,7 @@ function renderCharts(balanceHistory, stats) {
     });
 }
 
-// Render Trade History Table with Edit & Delete actions
+// Render Trade History Table
 function renderTradesTable(trades) {
     const tbody = document.getElementById('tradesTableBody');
     if (!tbody) return;
@@ -356,7 +366,7 @@ function renderTradesTable(trades) {
             <tr>
                 <td colspan="9" class="text-center py-10 text-slate-500">
                     <i class="fa-solid fa-folder-open text-2xl mb-2 block opacity-40"></i>
-                    No trades found. ${currentUser.role === 'admin' ? 'Click <b>"Log Trade"</b> to record one!' : ''}
+                    No trades logged yet. ${currentUser.role === 'admin' ? 'Click <b>"Log Trade"</b> to record your first trade!' : ''}
                 </td>
             </tr>
         `;
@@ -371,8 +381,8 @@ function renderTradesTable(trades) {
         const pnlColor = isWin ? 'text-emerald-400 font-bold' : (isLoss ? 'text-rose-400 font-bold' : 'text-slate-400');
         const pnlSign = trade.pnl > 0 ? '+' : '';
         const sideBadge = trade.direction === 'LONG' 
-            ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LONG</span>'
-            : '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">SHORT</span>';
+            ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="pulse-dot-green"></span> LONG</span>'
+            : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20"><span class="pulse-dot-red"></span> SHORT</span>';
 
         const formattedDate = trade.trade_date 
             ? new Date(trade.trade_date).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -387,7 +397,7 @@ function renderTradesTable(trades) {
         `;
 
         const photoHtml = trade.image_url 
-            ? `<button onclick="openImageModal('${trade.image_url}')" class="group relative block w-10 h-8 rounded-lg border border-slate-700 overflow-hidden bg-slate-900 hover:border-blue-500 transition shadow-sm">
+            ? `<button onclick="openImageModal('${trade.image_url}')" class="group relative block w-10 h-8 rounded-lg border border-white/10 overflow-hidden bg-black/40 hover:border-blue-500 transition shadow-sm">
                 <img src="${trade.image_url}" alt="chart" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                     <i class="fa-solid fa-expand text-[10px] text-white"></i>
@@ -395,20 +405,19 @@ function renderTradesTable(trades) {
                </button>`
             : `<span class="text-slate-600 text-[11px] italic">None</span>`;
 
-        // Actions: If Admin, show Edit & Delete. If Viewer, show View only icon or disabled
         const actionsHtml = isAdmin 
             ? `<div class="flex items-center justify-end gap-1">
-                <button onclick="openEditTradeModal(${trade.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5 rounded-lg hover:bg-slate-800" title="Edit Trade #${trade.id}">
+                <button onclick="openEditTradeModal(${trade.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5 rounded-lg hover:bg-white/[0.05]" title="Edit Trade #${trade.id}">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-                <button onclick="deleteTrade(${trade.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5 rounded-lg hover:bg-slate-800" title="Delete Trade #${trade.id}">
+                <button onclick="deleteTrade(${trade.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5 rounded-lg hover:bg-white/[0.05]" title="Delete Trade #${trade.id}">
                     <i class="fa-regular fa-trash-can"></i>
                 </button>
                </div>`
-            : `<span class="text-slate-600 text-[11px] font-mono-data" title="Viewer mode: view only">#${trade.id}</span>`;
+            : `<span class="text-slate-600 text-[11px] font-mono-data">#${trade.id}</span>`;
 
         return `
-            <tr class="hover:bg-slate-800/40 transition">
+            <tr class="table-row-hover">
                 <td class="py-3 px-4 text-slate-300 font-mono-data">${formattedDate}</td>
                 <td class="py-3 px-4 font-bold text-white tracking-wide font-mono-data">${trade.pair}</td>
                 <td class="py-3 px-4">${sideBadge}</td>
@@ -432,7 +441,7 @@ function filterTrades(type) {
             if (f === type) {
                 btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition';
             } else {
-                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition';
+                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-white/[0.08] text-slate-400 hover:text-white transition';
             }
         }
     });
@@ -444,7 +453,7 @@ function setPair(symbol) {
     document.getElementById('inputPair').value = symbol;
 }
 
-// Image upload preview
+// Image preview
 function previewImage(input) {
     const previewContainer = document.getElementById('imagePreviewContainer');
     const placeholder = document.getElementById('uploadPlaceholder');
@@ -474,17 +483,12 @@ function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
 
-function prefillLogin(user, pass) {
-    document.getElementById('loginUsername').value = user;
-    document.getElementById('loginPassword').value = pass;
-}
-
 async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('loginSubmitBtn');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Logging in...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Signing In...`;
 
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -497,7 +501,7 @@ async function handleLogin(e) {
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Login failed');
+        if (!res.ok) throw new Error(data.detail || 'Invalid username or password.');
 
         currentUser.token = data.token;
         currentUser.role = data.role;
@@ -509,9 +513,10 @@ async function handleLogin(e) {
         localStorage.setItem('tracker_name', data.displayName);
         localStorage.setItem('tracker_uname', data.username);
 
+        document.getElementById('loginForm').reset();
         closeLoginModal();
         renderAuthUI();
-        showToast(`Welcome back, ${data.displayName}!`, 'success');
+        showToast(`Signed in as ${data.displayName}`, 'success');
     } catch (err) {
         showToast(err.message, 'error');
     } finally {
@@ -526,7 +531,7 @@ async function logout() {
     } catch (e) {}
     setViewerState();
     renderAuthUI();
-    showToast('Logged out. Switched to Viewer mode.', 'info');
+    showToast('Signed out. Viewing in Read-Only mode.', 'info');
 }
 
 // ----------------- TRADE CREATE & EDIT MODALS -----------------
@@ -534,7 +539,7 @@ async function logout() {
 function openCreateTradeModal() {
     if (currentUser.role !== 'admin') {
         openLoginModal();
-        showToast('Admin password required to log trades.', 'info');
+        showToast('Admin credentials required to log trades.', 'info');
         return;
     }
 
@@ -542,9 +547,9 @@ function openCreateTradeModal() {
     form.reset();
     document.getElementById('editTradeId').value = '';
     document.getElementById('modalTitle').textContent = 'Log New Trade';
-    document.getElementById('modalSubtitle').textContent = 'Adhere to your 4H HTF and 1% risk rules';
+    document.getElementById('modalSubtitle').textContent = 'Strictly adhere to your 4H HTF and 1% risk rules';
     document.getElementById('saveBtnText').textContent = 'Save Trade & Send to Telegram';
-    document.getElementById('saveBtnIcon').className = 'fa-solid fa-paper-plane';
+    document.getElementById('saveBtnIcon').className = 'fa-solid fa-paper-plane text-xs';
     document.getElementById('currentImageHint').classList.add('hidden');
     document.getElementById('imagePreviewContainer').classList.add('hidden');
     document.getElementById('uploadPlaceholder').classList.remove('hidden');
@@ -556,7 +561,7 @@ function openCreateTradeModal() {
 function openEditTradeModal(tradeId) {
     if (currentUser.role !== 'admin') {
         openLoginModal();
-        showToast('Admin password required to edit trades.', 'info');
+        showToast('Admin credentials required to edit trades.', 'info');
         return;
     }
 
@@ -570,9 +575,8 @@ function openEditTradeModal(tradeId) {
     document.getElementById('modalTitle').textContent = `Edit Trade #${trade.id}`;
     document.getElementById('modalSubtitle').textContent = `Editing ${trade.pair} recorded on ${new Date(trade.trade_date).toLocaleDateString()}`;
     document.getElementById('saveBtnText').textContent = 'Update Trade';
-    document.getElementById('saveBtnIcon').className = 'fa-solid fa-floppy-disk';
+    document.getElementById('saveBtnIcon').className = 'fa-solid fa-floppy-disk text-xs';
 
-    // Populate form
     document.getElementById('inputPair').value = trade.pair;
     if (trade.direction === 'LONG') {
         document.getElementById('dirLong').checked = true;
@@ -594,7 +598,6 @@ function openEditTradeModal(tradeId) {
     document.getElementById('checkRisk').checked = Boolean(trade.rule_risk_1pct);
     document.getElementById('inputNotes').value = trade.notes || '';
 
-    // Image handling
     const previewContainer = document.getElementById('imagePreviewContainer');
     const placeholder = document.getElementById('uploadPlaceholder');
     const previewImg = document.getElementById('imagePreview');
@@ -618,18 +621,17 @@ function closeTradeModal() {
     document.getElementById('tradeModal').classList.add('hidden');
 }
 
-// Submit Create or Edit Trade
 async function handleTradeSubmit(e) {
     e.preventDefault();
     if (currentUser.role !== 'admin') {
-        showToast('Admin access required.', 'error');
+        showToast('Admin credentials required.', 'error');
         return;
     }
 
     const btn = document.getElementById('saveTradeBtn');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Processing...</span>`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Processing...</span>`;
 
     const form = document.getElementById('tradeForm');
     const formData = new FormData(form);
@@ -637,7 +639,6 @@ async function handleTradeSubmit(e) {
     const editId = document.getElementById('editTradeId').value;
     const isEdit = Boolean(editId);
 
-    // Explicitly handle checkboxes if unchecked
     if (!formData.has('rule_htf_4h')) formData.append('rule_htf_4h', 'false');
     if (!formData.has('rule_ltf_entry')) formData.append('rule_ltf_entry', 'false');
     if (!formData.has('rule_risk_1pct')) formData.append('rule_risk_1pct', 'false');
@@ -680,11 +681,10 @@ async function handleTradeSubmit(e) {
     }
 }
 
-// Delete Trade (Admin only)
 async function deleteTrade(id) {
     if (currentUser.role !== 'admin') {
         openLoginModal();
-        showToast('Admin password required to delete trades.', 'info');
+        showToast('Admin credentials required to delete trades.', 'info');
         return;
     }
 
@@ -705,11 +705,10 @@ async function deleteTrade(id) {
     }
 }
 
-// Test Telegram Bot
 async function testTelegram() {
     if (currentUser.role !== 'admin') {
         openLoginModal();
-        showToast('Admin password required to test Telegram.', 'info');
+        showToast('Admin credentials required to test Telegram.', 'info');
         return;
     }
 
@@ -737,7 +736,6 @@ async function testTelegram() {
     }
 }
 
-// Lightbox modal controls
 function openImageModal(url) {
     document.getElementById('lightboxImage').src = url;
     document.getElementById('imageModal').classList.remove('hidden');
@@ -747,7 +745,6 @@ function closeImageModal() {
     document.getElementById('imageModal').classList.add('hidden');
 }
 
-// Toast notification helper
 function showToast(msg, type = 'info') {
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
@@ -756,13 +753,13 @@ function showToast(msg, type = 'info') {
     toastMsg.textContent = msg;
 
     if (type === 'success') {
-        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-emerald-950/90 text-emerald-200 border-emerald-700/60 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
+        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#05281E]/95 text-emerald-300 border-emerald-500/40 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
         toastIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
     } else if (type === 'error') {
-        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-rose-950/90 text-rose-200 border-rose-700/60 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
+        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#2A080E]/95 text-rose-300 border-rose-500/40 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
         toastIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-400"></i>';
     } else {
-        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-slate-900/90 text-slate-200 border-slate-700 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
+        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#0E1422]/95 text-slate-200 border-white/10 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
         toastIcon.innerHTML = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
     }
 

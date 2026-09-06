@@ -130,7 +130,7 @@ def login(creds: LoginRequest):
     if not matched_role:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password. (Admin pass: Ratha123 | User pass: user123)"
+            detail="Invalid username or password."
         )
 
     # Generate session token (valid 30 days)

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Target $10 ➔ $100 | Performance Tracker</title>
+    <title>Trading Target $10 ➔ $100 | Performance Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,13 +13,13 @@
                 extend: {
                     colors: {
                         brand: {
-                            dark: '#080A0F',
-                            card: '#121722',
-                            border: '#232B3C',
-                            accent: '#3B82F6',
-                            win: '#10B981',
-                            loss: '#F43F5E',
-                            gold: '#F59E0B'
+                            dark: '#07090E',
+                            surface: '#0E131E',
+                            border: 'rgba(255,255,255,0.08)',
+                            blue: '#3B82F6',
+                            emerald: '#10B981',
+                            rose: '#F43F5E',
+                            amber: '#F59E0B'
                         }
                     }
                 }
@@ -32,77 +32,74 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="bg-[#080A0F] text-slate-200 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
-    <!-- Top Navbar -->
-    <header class="border-b border-slate-800/80 bg-[#0E131F]/90 backdrop-blur-md sticky top-0 z-40">
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-white/[0.06] bg-[#0A0E17]/80 backdrop-blur-xl sticky top-0 z-40 transition">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <i class="fa-solid fa-chart-line text-white text-lg"></i>
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/20">
+                    <i class="fa-solid fa-chart-line text-white text-base"></i>
                 </div>
                 <div>
-                    <span class="font-extrabold text-lg tracking-wider text-white flex items-center gap-2">
-                        TARGET <span class="text-amber-400 font-mono-data">$10</span> <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i> <span class="text-emerald-400 font-mono-data">$100</span>
-                    </span>
+                    <div class="font-extrabold text-base tracking-wide text-white flex items-center gap-2">
+                        TARGET <span class="text-amber-400 font-mono-data">$10</span> <i class="fa-solid fa-arrow-right text-[11px] text-slate-500"></i> <span class="text-emerald-400 font-mono-data">$100</span>
+                    </div>
                     <span class="text-[11px] text-slate-400 block -mt-0.5 font-medium">4H HTF • 3m/5m Entry • 1% Risk • Max 2/Day</span>
                 </div>
             </div>
 
             <!-- Navbar Actions -->
-            <div class="flex items-center space-x-3">
-                <!-- User Role Badge & Auth Controls -->
-                <div id="userBadgeContainer" class="flex items-center gap-2">
-                    <!-- Populated by JS: shows Login button or User role badge + Logout -->
-                </div>
+            <div class="flex items-center space-x-2.5">
+                <!-- User Status Container -->
+                <div id="userBadgeContainer" class="flex items-center gap-2"></div>
 
-                <!-- Admin Only: Test Telegram Button -->
-                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Integration" class="admin-only hidden px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-slate-700/60 shadow-sm">
+                <!-- Admin Action: Test Telegram -->
+                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Alerts" class="admin-only hidden px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-white/10 shadow-sm">
                     <i class="fa-brands fa-telegram text-sky-400 text-sm"></i>
                     <span class="hidden md:inline">Test Telegram</span>
                 </button>
 
-                <!-- Admin Only: Log Trade Button -->
-                <button id="navLogTradeBtn" onclick="openCreateTradeModal()" class="admin-only hidden px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i>
+                <!-- Admin Action: Log Trade -->
+                <button id="navLogTradeBtn" onclick="openCreateTradeModal()" class="admin-only hidden px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center gap-2 border border-blue-400/30">
+                    <i class="fa-solid fa-plus text-xs"></i>
                     <span>Log Trade</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Viewer Notice Banner (Shown only when logged in as Viewer) -->
-    <div id="viewerBanner" class="hidden bg-slate-900/90 border-b border-slate-800 px-4 py-2.5 text-center text-xs text-slate-300 flex items-center justify-center gap-2">
-        <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold text-[10px]">READ ONLY</span>
-        <span>You are logged in as <b>Viewer</b>. You can view all charts and data. To log or edit trades, please <button onclick="openLoginModal()" class="text-blue-400 underline font-semibold hover:text-blue-300">switch to Admin</button>.</span>
+    <!-- Viewer Read-Only Banner -->
+    <div id="viewerBanner" class="hidden bg-[#0D121F] border-b border-white/[0.06] px-4 py-2 text-center text-xs text-slate-300 flex items-center justify-center gap-2.5">
+        <span class="px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-bold text-[10px] border border-blue-500/30">READ-ONLY MODE</span>
+        <span>You are currently viewing in read-only mode. <button onclick="openLoginModal()" class="text-blue-400 font-semibold hover:text-blue-300 underline ml-1">Sign in with Admin</button> to log or edit trades.</span>
     </div>
 
-    <!-- Main Dashboard Container -->
+    <!-- Main Content Area -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Target Progress Banner -->
-        <section class="glass-card rounded-2xl p-6 relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-52 h-52 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            
+        <!-- 10x Goal Progress Banner -->
+        <section class="pro-card card-top-glow p-6 relative overflow-hidden">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
                     <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-blue-400 mb-1.5">
-                        <i class="fa-solid fa-bullseye"></i> 10X Account Growth Challenge
+                        <i class="fa-solid fa-bullseye text-xs"></i> 10x Account Growth Challenge
                     </div>
                     <div class="flex items-baseline gap-3">
-                        <h1 class="text-4xl sm:text-5xl font-extrabold text-white font-mono-data" id="displayBalance">$10.00</h1>
-                        <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Account Balance</span>
-                        <span id="gainBadge" class="text-xs font-bold font-mono-data px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">+0.0%</span>
+                        <h1 class="text-4xl sm:text-5xl font-extrabold text-white font-mono-data tracking-tight" id="displayBalance">$10.00</h1>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account Balance</span>
+                        <span id="gainBadge" class="text-xs font-bold font-mono-data px-2.5 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-white/10">+0.0%</span>
                     </div>
                     <p class="text-xs text-slate-400 mt-1.5">
-                        Starting from <span class="text-slate-300 font-semibold font-mono-data">$10.00</span> ➔ Target <span class="text-emerald-400 font-semibold font-mono-data">$100.00</span> (<span id="remainingAmount" class="font-mono-data text-amber-300">$90.00</span> to goal)
+                        Start: <span class="text-slate-200 font-semibold font-mono-data">$10.00</span> ➔ Target: <span class="text-emerald-400 font-semibold font-mono-data">$100.00</span> (<span id="remainingAmount" class="font-mono-data text-amber-300 font-semibold">$90.00</span> remaining)
                     </p>
                 </div>
 
-                <!-- Daily Setup Counter & Warning -->
-                <div class="flex items-center gap-4 bg-slate-900/90 border border-slate-800/80 px-5 py-3.5 rounded-2xl shadow-inner">
+                <!-- Daily Setup Counter -->
+                <div class="flex items-center gap-4 bg-[#0A0D15]/90 border border-white/[0.08] px-5 py-3.5 rounded-2xl shadow-inner">
                     <div class="text-right">
-                        <div class="text-[11px] text-slate-400 uppercase font-semibold">Today's Setups</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Today's Setups</div>
                         <div class="text-xl font-bold flex items-center justify-end gap-1.5 font-mono-data" id="todaySetupsDisplay">
                             <span id="todayCount" class="text-white">0</span>
                             <span class="text-slate-600">/</span>
@@ -110,39 +107,39 @@
                         </div>
                     </div>
                     <div id="setupPills" class="flex gap-2">
-                        <div id="pill1" class="w-4 h-9 rounded-lg bg-slate-800 border border-slate-700 transition duration-300" title="Setup 1"></div>
-                        <div id="pill2" class="w-4 h-9 rounded-lg bg-slate-800 border border-slate-700 transition duration-300" title="Setup 2"></div>
+                        <div id="pill1" class="w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10 transition duration-300" title="Setup 1"></div>
+                        <div id="pill2" class="w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10 transition duration-300" title="Setup 2"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Progress Bar -->
+            <!-- Animated Progress Bar -->
             <div class="mt-6">
                 <div class="flex justify-between text-xs font-semibold text-slate-400 mb-2 font-mono-data">
                     <span>$10.00 Start</span>
                     <span id="progressPctText" class="text-blue-400 font-bold">0% Completed</span>
-                    <span class="text-emerald-400 font-bold">$100.00 Goal</span>
+                    <span class="text-emerald-400 font-bold">$100.00 Target</span>
                 </div>
-                <div class="w-full h-4 bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-slate-800/80">
-                    <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-700 shadow-md progress-shimmer" style="width: 0%"></div>
+                <div class="w-full h-3.5 goal-bar-track rounded-full overflow-hidden p-0.5">
+                    <div id="progressBar" class="h-full goal-bar-fill rounded-full transition-all duration-700" style="width: 0%"></div>
                 </div>
             </div>
 
-            <!-- Daily Limit Alert -->
-            <div id="dailyLimitAlert" class="hidden mt-4 p-3.5 bg-rose-950/30 border border-rose-800/60 rounded-xl text-rose-200 text-xs flex items-center gap-3">
+            <!-- Daily Setup Limit Warning -->
+            <div id="dailyLimitAlert" class="hidden mt-4 p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-rose-200 text-xs flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-rose-400 text-lg flex-shrink-0"></i>
                 <div>
-                    <span class="font-bold">Daily Setup Limit Reached (2/2)!</span> You have completed your max 2 setups for today. Do not overtrade — preserve your profits and capital!
+                    <span class="font-bold">Daily Limit Hit (2/2 Setups)!</span> You have executed your 2 allowed setups for today. Do not overtrade — protect your capital and psychology!
                 </div>
             </div>
         </section>
 
-        <!-- Stats Overview Row -->
+        <!-- Stats Overview Cards -->
         <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Win Rate -->
-            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+            <div class="pro-card p-4.5 flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Win Rate</span>
+                    <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Win Rate</span>
                     <div class="text-2xl font-bold text-white mt-1 font-mono-data" id="statWinRate">0.0%</div>
                     <span class="text-xs text-slate-500 font-mono-data" id="statWinLossCount">0W - 0L - 0BE</span>
                 </div>
@@ -152,11 +149,11 @@
             </div>
 
             <!-- Total Trades -->
-            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+            <div class="pro-card p-4.5 flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Total Trades</span>
+                    <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Total Trades</span>
                     <div class="text-2xl font-bold text-white mt-1 font-mono-data" id="statTotalTrades">0</div>
-                    <span class="text-xs text-slate-500">Documented trades</span>
+                    <span class="text-xs text-slate-500">Documented</span>
                 </div>
                 <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg">
                     <i class="fa-solid fa-receipt"></i>
@@ -164,23 +161,23 @@
             </div>
 
             <!-- Rule Compliance -->
-            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+            <div class="pro-card p-4.5 flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Discipline Score</span>
+                    <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Discipline Rate</span>
                     <div class="text-2xl font-bold text-indigo-400 mt-1 font-mono-data" id="statDiscipline">100%</div>
-                    <span class="text-xs text-slate-500">4H HTF & 3/5m Entry</span>
+                    <span class="text-xs text-slate-500">4H HTF + 3/5m Entry</span>
                 </div>
                 <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
             </div>
 
-            <!-- 1% Risk Compliance -->
-            <div class="glass-card rounded-2xl p-4 flex items-center justify-between">
+            <!-- 1% Risk Rule -->
+            <div class="pro-card p-4.5 flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">1% Risk Rule</span>
+                    <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">1% Risk Rule</span>
                     <div class="text-2xl font-bold text-amber-400 mt-1 font-mono-data" id="statRiskScore">100%</div>
-                    <span class="text-xs text-slate-500">Max 1% capital risked</span>
+                    <span class="text-xs text-slate-500">Risk per trade respected</span>
                 </div>
                 <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg">
                     <i class="fa-solid fa-percent"></i>
@@ -190,18 +187,18 @@
 
         <!-- Charts Section -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Line Chart: Balance Equity Curve -->
-            <div class="lg:col-span-2 glass-card rounded-2xl p-5 flex flex-col">
+            <!-- Line Chart: Equity Curve -->
+            <div class="lg:col-span-2 pro-card p-5.5 flex flex-col">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-chart-area text-blue-400"></i> Equity Progression & $100 Target
+                            <i class="fa-solid fa-chart-area text-blue-400"></i> Equity Curve & $100 Target
                         </h2>
-                        <span class="text-xs text-slate-400">Account balance curve vs $100 milestone threshold</span>
+                        <span class="text-xs text-slate-400">Account balance progression vs target goal</span>
                     </div>
                     <div class="flex items-center gap-3 text-xs font-mono-data">
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Balance</span>
-                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> $100 Target</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> $100 Goal</span>
                     </div>
                 </div>
                 <div class="relative flex-1 min-h-[290px]">
@@ -209,27 +206,27 @@
                 </div>
             </div>
 
-            <!-- Cycle / Donut Chart: Win/Loss Performance -->
-            <div class="glass-card rounded-2xl p-5 flex flex-col">
+            <!-- Cycle / Donut Chart: Win/Loss Breakdown -->
+            <div class="pro-card p-5.5 flex flex-col">
                 <div class="mb-4">
                     <h2 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-chart-pie text-emerald-400"></i> Performance Cycle
                     </h2>
-                    <span class="text-xs text-slate-400">Win, Loss & Break-Even breakdown</span>
+                    <span class="text-xs text-slate-400">Wins, Losses, and Break-evens</span>
                 </div>
                 <div class="relative flex-1 min-h-[200px] flex items-center justify-center">
                     <canvas id="cycleChart"></canvas>
                 </div>
-                <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-800/80 text-center font-mono-data">
-                    <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.06] text-center font-mono-data">
+                    <div class="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
                         <span class="text-slate-400 block text-[11px]">Wins</span>
                         <span class="text-emerald-400 font-bold text-sm" id="badgeWins">0</span>
                     </div>
-                    <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                    <div class="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
                         <span class="text-slate-400 block text-[11px]">Losses</span>
                         <span class="text-rose-400 font-bold text-sm" id="badgeLosses">0</span>
                     </div>
-                    <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                    <div class="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
                         <span class="text-slate-400 block text-[11px]">B.E.</span>
                         <span class="text-slate-400 font-bold text-sm" id="badgeBE">0</span>
                     </div>
@@ -238,29 +235,29 @@
         </section>
 
         <!-- Golden Rules Reminder Bar -->
-        <section class="glass-card rounded-2xl p-4 border border-blue-900/30">
+        <section class="pro-card p-4 border border-blue-900/30">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-book-bookmark"></i>
+                        <i class="fa-solid fa-book-bookmark text-sm"></i>
                     </div>
                     <div>
-                        <div class="text-xs font-bold text-white">Strict Trading Rules</div>
-                        <div class="text-[11px] text-slate-400">Required criteria for every trade entry</div>
+                        <div class="text-xs font-bold text-white">Your Golden Trading Rules</div>
+                        <div class="text-[11px] text-slate-400">Mandatory checklist before entering any position</div>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-2 text-xs">
-                    <span class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5">
+                <div class="flex flex-wrap gap-2 text-xs font-medium">
+                    <span class="px-3 py-1.5 rounded-xl bg-black/40 border border-white/[0.08] text-slate-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-binoculars text-blue-400"></i> 1. Look HTF 4H
                     </span>
-                    <span class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5">
+                    <span class="px-3 py-1.5 rounded-xl bg-black/40 border border-white/[0.08] text-slate-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-clock text-indigo-400"></i> 2. Switch 3m/5m Entry
                     </span>
-                    <span class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5">
+                    <span class="px-3 py-1.5 rounded-xl bg-black/40 border border-white/[0.08] text-slate-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-shield text-amber-400"></i> 3. Risk 1% Per Trade
                     </span>
-                    <span class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5">
+                    <span class="px-3 py-1.5 rounded-xl bg-black/40 border border-white/[0.08] text-slate-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-hand text-rose-400"></i> 4. Max 2 Setups / Day
                     </span>
                 </div>
@@ -268,25 +265,25 @@
         </section>
 
         <!-- Trade History Journal & Editing Table -->
-        <section class="glass-card rounded-2xl p-5 space-y-4">
+        <section class="pro-card p-5 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h2 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-list-check text-blue-400"></i> Trade History Journal
                     </h2>
-                    <span class="text-xs text-slate-400">Chronological records with editing, rule tracking & screenshots</span>
+                    <span class="text-xs text-slate-400">Chronological logs with editable entries & chart proofs</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="filterTrades('all')" id="filterAll" class="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition">All</button>
-                    <button onclick="filterTrades('wins')" id="filterWins" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition">Wins</button>
-                    <button onclick="filterTrades('losses')" id="filterLosses" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition">Losses</button>
+                    <button onclick="filterTrades('wins')" id="filterWins" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-white/[0.08] text-slate-400 hover:text-white transition">Wins</button>
+                    <button onclick="filterTrades('losses')" id="filterLosses" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-white/[0.08] text-slate-400 hover:text-white transition">Losses</button>
                 </div>
             </div>
 
             <!-- Table Container -->
-            <div class="overflow-x-auto rounded-xl border border-slate-800/80">
+            <div class="overflow-x-auto rounded-xl border border-white/[0.06]">
                 <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-900/90 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                    <thead class="bg-[#0A0E17] text-slate-400 uppercase text-[11px] font-semibold border-b border-white/[0.06]">
                         <tr>
                             <th class="py-3 px-4">Date / Time</th>
                             <th class="py-3 px-4">Pair</th>
@@ -294,16 +291,16 @@
                             <th class="py-3 px-4">Daily Setup</th>
                             <th class="py-3 px-4">PnL ($)</th>
                             <th class="py-3 px-4">Balance</th>
-                            <th class="py-3 px-4">Rules Compliance</th>
-                            <th class="py-3 px-4">Chart</th>
+                            <th class="py-3 px-4">Rules Followed</th>
+                            <th class="py-3 px-4">Chart Proof</th>
                             <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="tradesTableBody" class="divide-y divide-slate-800/60 bg-[#0E131F]/60">
+                    <tbody id="tradesTableBody" class="divide-y divide-white/[0.04] bg-[#0A0D15]/60">
                         <tr>
                             <td colspan="9" class="text-center py-10 text-slate-500">
                                 <i class="fa-solid fa-spinner fa-spin text-lg mb-2 block text-blue-500"></i>
-                                Loading trade journal...
+                                Loading journal records...
                             </td>
                         </tr>
                     </tbody>
@@ -314,75 +311,57 @@
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
-        Trading Performance Journal • Render PostgreSQL Database • Role: <span id="footerRole">Guest</span>
+    <footer class="border-t border-white/[0.06] py-4 text-center text-xs text-slate-500">
+        Trading Performance Journal • Render PostgreSQL Database • Role: <span id="footerRole" class="text-slate-400 font-semibold">Viewer</span>
     </footer>
 
     <!-- ================= MODALS ================= -->
 
-    <!-- 1. LOGIN MODAL -->
-    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 modal-overlay hidden p-4">
-        <div class="glass-card modal-container w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
-            <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+    <!-- 1. CLEAN SECURE LOGIN MODAL (Zero Passwords Exposed) -->
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
+        <div class="modal-dialog w-full max-w-sm rounded-2xl p-6 relative">
+            <div class="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center">
-                        <i class="fa-solid fa-lock text-sm"></i>
+                    <div class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                        <i class="fa-solid fa-shield-halved text-sm"></i>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-white">Login to Tracker</h3>
-                        <p class="text-[11px] text-slate-400">Admin can edit & control; User can view</p>
+                        <h3 class="text-sm font-bold text-white">Account Authentication</h3>
+                        <p class="text-[11px] text-slate-400">Sign in with your credentials</p>
                     </div>
                 </div>
                 <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                    <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
-            <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4">
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <!-- Username -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Username</label>
+                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                        <input type="text" id="loginUsername" required placeholder="admin or user" class="w-full pl-9 pr-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
+                        <input type="text" id="loginUsername" required placeholder="Enter username" class="pro-input w-full pl-9 pr-3 py-2 text-sm focus:outline-none">
                     </div>
                 </div>
 
-                <!-- Password -->
+                <!-- Password with eye toggle -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Password</label>
+                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Password</label>
                     <div class="relative">
-                        <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                        <input type="password" id="loginPassword" required placeholder="Password" class="w-full pl-9 pr-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-
-                <!-- Quick Pre-fill buttons for convenience -->
-                <div class="pt-1">
-                    <span class="text-[11px] text-slate-400 block mb-1.5">Quick fill credentials:</span>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="prefillLogin('admin', 'Ratha123')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-blue-500 text-xs text-left transition flex items-center gap-1.5">
-                            <span class="text-amber-400">👑</span>
-                            <div>
-                                <span class="font-bold text-white block text-[11px]">Admin</span>
-                                <span class="text-slate-500 text-[10px]">Pass: Ratha123</span>
-                            </div>
-                        </button>
-                        <button type="button" onclick="prefillLogin('user', 'user123')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-blue-500 text-xs text-left transition flex items-center gap-1.5">
-                            <span class="text-blue-400">👁️</span>
-                            <div>
-                                <span class="font-bold text-white block text-[11px]">Viewer</span>
-                                <span class="text-slate-500 text-[10px]">Pass: user123</span>
-                            </div>
+                        <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" class="pro-input w-full pl-9 pr-9 py-2 text-sm focus:outline-none font-mono-data">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs">
+                            <i id="passwordEyeIcon" class="fa-regular fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Submit Button -->
                 <div class="pt-2">
-                    <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                        <span>Log In</span>
+                    <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
+                        <span>Sign In</span>
                     </button>
                 </div>
             </form>
@@ -390,20 +369,20 @@
     </div>
 
     <!-- 2. LOG / EDIT TRADE MODAL -->
-    <div id="tradeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 modal-overlay hidden p-4 overflow-y-auto">
-        <div class="glass-card modal-container w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden my-8 border border-slate-700">
+    <div id="tradeModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4 overflow-y-auto">
+        <div class="modal-dialog w-full max-w-lg rounded-2xl my-8 overflow-hidden">
             <!-- Header -->
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+            <div class="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between bg-black/20">
                 <div class="flex items-center gap-2.5">
-                    <div id="modalIconContainer" class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                    <div id="modalIconContainer" class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/20">
                         <i id="modalIcon" class="fa-solid fa-plus font-bold"></i>
                     </div>
                     <div>
-                        <h3 id="modalTitle" class="text-base font-bold text-white">Log New Trade</h3>
-                        <span id="modalSubtitle" class="text-[11px] text-slate-400">Adhere to your 4H HTF and 1% risk rules</span>
+                        <h3 id="modalTitle" class="text-sm font-bold text-white">Log New Trade</h3>
+                        <span id="modalSubtitle" class="text-[11px] text-slate-400">Strictly adhere to your 4H HTF and 1% risk rules</span>
                     </div>
                 </div>
-                <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white transition text-lg">
+                <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white transition text-base">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -412,38 +391,38 @@
             <form id="tradeForm" onsubmit="handleTradeSubmit(event)" class="p-6 space-y-4">
                 <input type="hidden" id="editTradeId" name="trade_id" value="">
 
-                <!-- Pair & Quick Tags -->
+                <!-- Asset Pair -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Trading Pair / Asset *</label>
-                    <input type="text" id="inputPair" name="pair" required placeholder="e.g. XAUUSD, EURUSD, BTCUSDT" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-blue-500 uppercase font-mono-data">
+                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Trading Pair / Asset *</label>
+                    <input type="text" id="inputPair" name="pair" required placeholder="e.g. XAUUSD, EURUSD, BTCUSDT" class="pro-input w-full px-3 py-2 text-sm focus:outline-none uppercase font-mono-data">
                     <div class="flex flex-wrap gap-1.5 mt-2">
-                        <button type="button" onclick="setPair('XAUUSD')" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800">XAUUSD</button>
-                        <button type="button" onclick="setPair('EURUSD')" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800">EURUSD</button>
-                        <button type="button" onclick="setPair('GBPUSD')" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800">GBPUSD</button>
-                        <button type="button" onclick="setPair('BTCUSDT')" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800">BTCUSDT</button>
-                        <button type="button" onclick="setPair('US30')" class="px-2 py-0.5 text-[11px] rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800">US30</button>
+                        <button type="button" onclick="setPair('XAUUSD')" class="px-2 py-0.5 text-[11px] rounded-lg bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:border-blue-500/50 transition">XAUUSD</button>
+                        <button type="button" onclick="setPair('EURUSD')" class="px-2 py-0.5 text-[11px] rounded-lg bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:border-blue-500/50 transition">EURUSD</button>
+                        <button type="button" onclick="setPair('GBPUSD')" class="px-2 py-0.5 text-[11px] rounded-lg bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:border-blue-500/50 transition">GBPUSD</button>
+                        <button type="button" onclick="setPair('BTCUSDT')" class="px-2 py-0.5 text-[11px] rounded-lg bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:border-blue-500/50 transition">BTCUSDT</button>
+                        <button type="button" onclick="setPair('US30')" class="px-2 py-0.5 text-[11px] rounded-lg bg-black/40 border border-white/10 text-slate-400 hover:text-white hover:border-blue-500/50 transition">US30</button>
                     </div>
                 </div>
 
                 <!-- Direction & Setup # -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Direction *</label>
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Direction *</label>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="flex items-center justify-center py-2 px-3 border border-slate-700 rounded-xl cursor-pointer transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-400 text-slate-400 text-xs font-bold">
+                            <label class="flex items-center justify-center py-2 px-3 border border-white/10 rounded-xl cursor-pointer transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-400 text-slate-400 text-xs font-bold bg-black/20">
                                 <input type="radio" id="dirLong" name="direction" value="LONG" checked class="hidden">
-                                <span>🟢 LONG</span>
+                                <span class="flex items-center gap-1.5"><span class="pulse-dot-green"></span> LONG</span>
                             </label>
-                            <label class="flex items-center justify-center py-2 px-3 border border-slate-700 rounded-xl cursor-pointer transition has-[:checked]:border-rose-500 has-[:checked]:bg-rose-500/10 has-[:checked]:text-rose-400 text-slate-400 text-xs font-bold">
+                            <label class="flex items-center justify-center py-2 px-3 border border-white/10 rounded-xl cursor-pointer transition has-[:checked]:border-rose-500 has-[:checked]:bg-rose-500/10 has-[:checked]:text-rose-400 text-slate-400 text-xs font-bold bg-black/20">
                                 <input type="radio" id="dirShort" name="direction" value="SHORT" class="hidden">
-                                <span>🔴 SHORT</span>
+                                <span class="flex items-center gap-1.5"><span class="pulse-dot-red"></span> SHORT</span>
                             </label>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Daily Setup #</label>
-                        <select id="inputSetupNumber" name="setup_number" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-blue-500 font-mono-data">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Daily Setup #</label>
+                        <select id="inputSetupNumber" name="setup_number" class="pro-input w-full px-3 py-2 text-xs focus:outline-none font-mono-data">
                             <option value="1">Setup 1 of the Day</option>
                             <option value="2">Setup 2 of the Day</option>
                         </select>
@@ -453,41 +432,41 @@
                 <!-- Date & PnL ($) -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Date & Time *</label>
-                        <input type="datetime-local" id="inputDate" name="trade_date" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-blue-500 font-mono-data">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Date & Time *</label>
+                        <input type="datetime-local" id="inputDate" name="trade_date" required class="pro-input w-full px-3 py-2 text-xs focus:outline-none font-mono-data">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">PnL in $ (+ or -) *</label>
-                        <input type="number" step="0.01" id="inputPnl" name="pnl" required placeholder="e.g. 1.50 or -0.15" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-sm font-bold focus:outline-none focus:border-blue-500 font-mono-data">
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">PnL in $ (+ or -) *</label>
+                        <input type="number" step="0.01" id="inputPnl" name="pnl" required placeholder="e.g. 1.50 or -0.15" class="pro-input w-full px-3 py-2 text-sm font-bold focus:outline-none font-mono-data">
                     </div>
                 </div>
 
-                <!-- Strict Rules Checklist -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
-                    <span class="block text-[11px] font-bold uppercase tracking-wider text-blue-400">
+                <!-- Rules Checklist -->
+                <div class="bg-black/40 border border-white/[0.08] rounded-xl p-3.5 space-y-2.5">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-blue-400">
                         <i class="fa-solid fa-clipboard-check mr-1"></i> Pre-Trade Rules Checklist
                     </span>
 
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white">
-                        <input type="checkbox" id="checkHtf" name="rule_htf_4h" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0">
-                        <span>Looked at <b>HTF 4H</b> for overall trend & key levels</span>
+                        <input type="checkbox" id="checkHtf" name="rule_htf_4h" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-white/20 focus:ring-0">
+                        <span>Analyzed <b>HTF 4H</b> for overall trend & key zones</span>
                     </label>
 
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white">
-                        <input type="checkbox" id="checkLtf" name="rule_ltf_entry" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0">
-                        <span>Switched to <b>3m or 5m</b> for confirmation entry</span>
+                        <input type="checkbox" id="checkLtf" name="rule_ltf_entry" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-white/20 focus:ring-0">
+                        <span>Switched to <b>3m or 5m</b> for confirmation trigger</span>
                     </label>
 
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white">
-                        <input type="checkbox" id="checkRisk" name="rule_risk_1pct" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0">
-                        <span>Strict <b>1% Risk</b> of current account</span>
+                        <input type="checkbox" id="checkRisk" name="rule_risk_1pct" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-white/20 focus:ring-0">
+                        <span>Maintained strict <b>1% Risk</b> of current account</span>
                     </label>
                 </div>
 
-                <!-- Screenshot Upload -->
+                <!-- Screenshot Attachment -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Chart Screenshot (Proof)</label>
-                    <div class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-3 text-center transition cursor-pointer relative bg-slate-900/50" onclick="document.getElementById('inputPhoto').click()">
+                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Chart Screenshot (Proof)</label>
+                    <div class="border border-dashed border-white/20 hover:border-blue-500 rounded-xl p-3 text-center transition cursor-pointer relative bg-black/30" onclick="document.getElementById('inputPhoto').click()">
                         <input type="file" id="inputPhoto" name="image" accept="image/*" class="hidden" onchange="previewImage(this)">
                         <div id="uploadPlaceholder">
                             <i class="fa-solid fa-cloud-arrow-up text-slate-500 text-xl mb-1"></i>
@@ -495,21 +474,21 @@
                             <span id="currentImageHint" class="text-[10px] text-blue-400 hidden block mt-1">Existing image attached. Click to replace.</span>
                         </div>
                         <div id="imagePreviewContainer" class="hidden flex items-center justify-center">
-                            <img id="imagePreview" src="" alt="Chart Preview" class="max-h-36 rounded-lg object-contain border border-slate-700">
+                            <img id="imagePreview" src="" alt="Chart Preview" class="max-h-36 rounded-lg object-contain border border-white/10">
                         </div>
                     </div>
                 </div>
 
                 <!-- Notes -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Trade Notes / Confluences</label>
-                    <textarea id="inputNotes" name="notes" rows="2" placeholder="Why did you take this setup? Confluences observed..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-blue-500"></textarea>
+                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Trade Notes & Confluences</label>
+                    <textarea id="inputNotes" name="notes" rows="2" placeholder="Describe entry trigger, market context..." class="pro-input w-full px-3 py-2 text-xs focus:outline-none"></textarea>
                 </div>
 
                 <!-- Action Button -->
                 <div class="pt-2">
-                    <button type="submit" id="saveTradeBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
-                        <i id="saveBtnIcon" class="fa-solid fa-paper-plane"></i>
+                    <button type="submit" id="saveTradeBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2">
+                        <i id="saveBtnIcon" class="fa-solid fa-paper-plane text-xs"></i>
                         <span id="saveBtnText">Save Trade & Send to Telegram</span>
                     </button>
                 </div>
@@ -517,17 +496,17 @@
         </div>
     </div>
 
-    <!-- 3. LIGHTBOX PREVIEW MODAL -->
-    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4" onclick="closeImageModal()">
+    <!-- 3. LIGHTBOX IMAGE PREVIEW MODAL -->
+    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4" onclick="closeImageModal()">
         <div class="max-w-4xl max-h-[90vh] relative" onclick="event.stopPropagation()">
             <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-2xl hover:text-slate-300">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <img id="lightboxImage" src="" alt="Trade Chart" class="max-w-full max-h-[85vh] rounded-xl object-contain border border-slate-700 shadow-2xl">
+            <img id="lightboxImage" src="" alt="Trade Chart" class="max-w-full max-h-[85vh] rounded-xl object-contain border border-white/15 shadow-2xl">
         </div>
     </div>
 
-    <!-- 4. TOAST NOTIFICATIONS -->
+    <!-- 4. FLOATING TOAST NOTIFICATION -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border text-xs font-semibold transform transition duration-300 translate-y-24 opacity-0 flex items-center gap-2.5">
         <span id="toastIcon"></span>
         <span id="toastMsg"></span>
