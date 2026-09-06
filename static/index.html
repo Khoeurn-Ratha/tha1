@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Target $10 ➔ $100 | Performance Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0B0E14',
+                            card: '#151A23',
+                            border: '#242C3D',
+                            accent: '#3B82F6',
+                            win: '#10B981',
+                            loss: '#EF4444',
+                            gold: '#F59E0B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-[#0B0E14] text-slate-200 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Top Navbar -->
+    <header class="border-b border-slate-800 bg-[#121620]/90 backdrop-blur sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-chart-line text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-black text-lg tracking-wider text-white flex items-center gap-2">
+                        TARGET <span class="text-amber-400">$10</span> <i class="fa-solid fa-arrow-right text-xs text-slate-500"></i> <span class="text-emerald-400">$100</span>
+                    </span>
+                    <span class="text-xs text-slate-400 block -mt-1 font-medium">4H HTF • 3m/5m Entry • 1% Risk • Max 2/Day</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Integration" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-slate-700">
+                    <i class="fa-brands fa-telegram text-sky-400 text-sm"></i>
+                    <span class="hidden sm:inline">Test Telegram</span>
+                </button>
+                <button onclick="openTradeModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Log New Trade</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Target Progress Banner -->
+        <section class="bg-gradient-to-r from-[#151A23] via-[#1A2230] to-[#151A23] border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">
+                        <i class="fa-solid fa-bullseye"></i> Challenge Objective: 10x Account Growth
+                    </div>
+                    <div class="flex items-baseline gap-3">
+                        <h1 class="text-4xl font-extrabold text-white" id="displayBalance">$10.00</h1>
+                        <span class="text-sm font-medium text-slate-400">Current Balance</span>
+                        <span id="gainBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">+0.0%</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Starting from <span class="text-slate-300 font-semibold">$10.00</span> ➔ Goal is <span class="text-emerald-400 font-semibold">$100.00</span> (<span id="remainingAmount">$90.00</span> to go)</p>
+                </div>
+
+                <!-- Daily Setup Counter & Warning -->
+                <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-5 py-3 rounded-xl">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 uppercase font-semibold">Today's Setups</div>
+                        <div class="text-xl font-bold flex items-center justify-end gap-1.5" id="todaySetupsDisplay">
+                            <span id="todayCount" class="text-white">0</span>
+                            <span class="text-slate-500">/</span>
+                            <span class="text-slate-400">2 max</span>
+                        </div>
+                    </div>
+                    <div id="setupPills" class="flex gap-1.5">
+                        <div id="pill1" class="w-3.5 h-8 rounded-md bg-slate-800 border border-slate-700 transition" title="Setup 1"></div>
+                        <div id="pill2" class="w-3.5 h-8 rounded-md bg-slate-800 border border-slate-700 transition" title="Setup 2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-6">
+                <div class="flex justify-between text-xs font-semibold text-slate-400 mb-2">
+                    <span>$10 (Start)</span>
+                    <span id="progressPctText" class="text-blue-400">0% Reached</span>
+                    <span class="text-emerald-400">$100 (Goal)</span>
+                </div>
+                <div class="w-full h-3.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-700 shadow-sm" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Daily Warning Alert (Hidden by default, shown if setups >= 2) -->
+            <div id="dailyLimitAlert" class="hidden mt-4 p-3 bg-red-950/40 border border-red-800/60 rounded-xl text-red-200 text-xs flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-red-400 text-base"></i>
+                <div>
+                    <span class="font-bold">Daily Limit Reached (2/2 Setups)!</span> You have completed both trading setups for today. Stop trading, protect your capital, and do not overtrade!
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Overview Cards -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Win Rate -->
+            <div class="bg-[#151A23] border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-medium uppercase">Win Rate</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="statWinRate">0.0%</div>
+                    <span class="text-xs text-slate-500" id="statWinLossCount">0W - 0L</span>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+            </div>
+
+            <!-- Total Trades -->
+            <div class="bg-[#151A23] border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-medium uppercase">Total Trades</span>
+                    <div class="text-2xl font-bold text-white mt-1" id="statTotalTrades">0</div>
+                    <span class="text-xs text-slate-500">Recorded in Journal</span>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+            </div>
+
+            <!-- HTF & LTF Discipline -->
+            <div class="bg-[#151A23] border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-medium uppercase">Rule Compliance</span>
+                    <div class="text-2xl font-bold text-emerald-400 mt-1" id="statDiscipline">100%</div>
+                    <span class="text-xs text-slate-500">4H HTF + 3/5m Entry</span>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+
+            <!-- 1% Risk Compliance -->
+            <div class="bg-[#151A23] border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 font-medium uppercase">1% Risk Rule</span>
+                    <div class="text-2xl font-bold text-amber-400 mt-1" id="statRiskScore">100%</div>
+                    <span class="text-xs text-slate-500">Risk per trade respected</span>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <i class="fa-solid fa-percent"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Line Chart: Balance Curve to $100 -->
+            <div class="lg:col-span-2 bg-[#151A23] border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area text-blue-400"></i> Equity Curve & $100 Target
+                        </h2>
+                        <span class="text-xs text-slate-400">Live progression towards the $100 target threshold</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500"></span> Balance
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ml-2"></span> $100 Goal
+                    </div>
+                </div>
+                <div class="relative flex-1 min-h-[280px]">
+                    <canvas id="balanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Cycle / Donut Chart: Win / Loss Distribution -->
+            <div class="bg-[#151A23] border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col">
+                <div class="mb-4">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-emerald-400"></i> Performance Cycle
+                    </h2>
+                    <span class="text-xs text-slate-400">Win, Loss & Break-Even breakdown</span>
+                </div>
+                <div class="relative flex-1 min-h-[200px] flex items-center justify-center">
+                    <canvas id="cycleChart"></canvas>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-800 text-center text-xs">
+                    <div>
+                        <span class="text-slate-400 block">Wins</span>
+                        <span class="text-emerald-400 font-bold text-sm" id="badgeWins">0</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Losses</span>
+                        <span class="text-red-400 font-bold text-sm" id="badgeLosses">0</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Break-even</span>
+                        <span class="text-slate-400 font-bold text-sm" id="badgeBE">0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rules Reminder Card -->
+        <section class="bg-gradient-to-r from-blue-950/20 via-[#151A23] to-indigo-950/20 border border-blue-900/40 rounded-2xl p-4">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-white">Your Golden Trading Rules</div>
+                        <div class="text-xs text-slate-400">Must be verified before entering every single trade</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-binoculars text-blue-400"></i> 1. Look HTF 4H
+                    </span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock text-indigo-400"></i> 2. Switch to 3m / 5m Entry
+                    </span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield text-amber-400"></i> 3. Risk 1% Per Trade
+                    </span>
+                    <span class="px-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand text-rose-400"></i> 4. Max 2 Setups / Day
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trade History Journal -->
+        <section class="bg-[#151A23] border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-blue-400"></i> Trade History Journal
+                    </h2>
+                    <span class="text-xs text-slate-400">Detailed records, rule compliance, and screenshot proofs</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="filterTrades('all')" id="filterAll" class="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition">All</button>
+                    <button onclick="filterTrades('wins')" id="filterWins" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition">Wins</button>
+                    <button onclick="filterTrades('losses')" id="filterLosses" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition">Losses</button>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900/90 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-4">Date / Time</th>
+                            <th class="py-3 px-4">Pair</th>
+                            <th class="py-3 px-4">Side</th>
+                            <th class="py-3 px-4">Daily Setup</th>
+                            <th class="py-3 px-4">PnL ($)</th>
+                            <th class="py-3 px-4">Balance After</th>
+                            <th class="py-3 px-4">Rules Adherence</th>
+                            <th class="py-3 px-4">Chart Proof</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradesTableBody" class="divide-y divide-slate-800/60 bg-[#121620]">
+                        <!-- Populated by JavaScript -->
+                        <tr>
+                            <td colspan="9" class="text-center py-8 text-slate-500">
+                                <i class="fa-solid fa-spinner fa-spin text-lg mb-2 block"></i>
+                                Loading trade journal...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        Trading Performance Journal • Render PostgreSQL Database • Automated Telegram Alerts
+    </footer>
+
+    <!-- Log Trade Modal -->
+    <div id="tradeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm hidden p-4 overflow-y-auto">
+        <div class="bg-[#151A23] border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden my-8">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                        <i class="fa-solid fa-plus font-bold"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white">Log New Trade</h3>
+                </div>
+                <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white transition text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="tradeForm" onsubmit="submitTrade(event)" class="p-6 space-y-4">
+                <!-- Pair & Quick Tags -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Trading Pair / Asset *</label>
+                    <input type="text" id="inputPair" name="pair" required placeholder="e.g. XAUUSD, EURUSD, BTCUSDT" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500 uppercase">
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                        <button type="button" onclick="setPair('XAUUSD')" class="px-2 py-0.5 text-[11px] rounded bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700">XAUUSD</button>
+                        <button type="button" onclick="setPair('EURUSD')" class="px-2 py-0.5 text-[11px] rounded bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700">EURUSD</button>
+                        <button type="button" onclick="setPair('GBPUSD')" class="px-2 py-0.5 text-[11px] rounded bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700">GBPUSD</button>
+                        <button type="button" onclick="setPair('BTCUSDT')" class="px-2 py-0.5 text-[11px] rounded bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700">BTCUSDT</button>
+                        <button type="button" onclick="setPair('US30')" class="px-2 py-0.5 text-[11px] rounded bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700">US30</button>
+                    </div>
+                </div>
+
+                <!-- Direction & Setup Number -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Direction *</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center justify-center py-2 px-3 border border-slate-700 rounded-lg cursor-pointer transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-400 text-slate-400 text-xs font-bold">
+                                <input type="radio" name="direction" value="LONG" checked class="hidden">
+                                <span>🟢 LONG</span>
+                            </label>
+                            <label class="flex items-center justify-center py-2 px-3 border border-slate-700 rounded-lg cursor-pointer transition has-[:checked]:border-red-500 has-[:checked]:bg-red-500/10 has-[:checked]:text-red-400 text-slate-400 text-xs font-bold">
+                                <input type="radio" name="direction" value="SHORT" class="hidden">
+                                <span>🔴 SHORT</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Daily Setup #</label>
+                        <select id="inputSetupNumber" name="setup_number" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:border-blue-500">
+                            <option value="1">Setup 1 of the Day</option>
+                            <option value="2">Setup 2 of the Day</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Date & PnL ($) -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Date & Time *</label>
+                        <input type="datetime-local" id="inputDate" name="trade_date" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">PnL in $ (+ or -) *</label>
+                        <input type="number" step="0.01" id="inputPnl" name="pnl" required placeholder="e.g. 1.25 or -0.10" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm font-bold focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Rules Checklist (Enforcement) -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 space-y-2">
+                    <span class="block text-[11px] font-bold uppercase tracking-wider text-blue-400 mb-1">
+                        <i class="fa-solid fa-clipboard-check"></i> Pre-Trade Rules Checklist
+                    </span>
+
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white">
+                        <input type="checkbox" name="rule_htf_4h" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-600 focus:ring-0">
+                        <span>Looked at <b>HTF 4H</b> for overall trend & key level</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white">
+                        <input type="checkbox" name="rule_ltf_entry" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-600 focus:ring-0">
+                        <span>Switched to <b>3m or 5m</b> for confirmation entry</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white">
+                        <input type="checkbox" name="rule_risk_1pct" value="true" checked class="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-600 focus:ring-0">
+                        <span>Maintained strict <b>1% Risk</b> of current account</span>
+                    </label>
+                </div>
+
+                <!-- Screenshot Upload -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Chart Screenshot (Photo)</label>
+                    <div class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-3 text-center transition cursor-pointer relative bg-slate-900/40" onclick="document.getElementById('inputPhoto').click()">
+                        <input type="file" id="inputPhoto" name="image" accept="image/*" class="hidden" onchange="previewImage(this)">
+                        <div id="uploadPlaceholder">
+                            <i class="fa-solid fa-cloud-arrow-up text-slate-500 text-xl mb-1"></i>
+                            <p class="text-xs text-slate-400">Click to upload chart screenshot (PNG, JPG)</p>
+                        </div>
+                        <div id="imagePreviewContainer" class="hidden flex items-center justify-center">
+                            <img id="imagePreview" src="" alt="Chart Preview" class="max-h-36 rounded-lg object-contain border border-slate-700">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Trade Notes / Rationale</label>
+                    <textarea name="notes" rows="2" placeholder="Why did you take this trade? Confluences observed..." class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" id="saveTradeBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Save Trade & Send to Telegram</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="imageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4" onclick="closeImageModal()">
+        <div class="max-w-4xl max-h-[90vh] relative" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal()" class="absolute -top-10 right-0 text-white text-2xl hover:text-slate-300">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="lightboxImage" src="" alt="Trade Chart" class="max-w-full max-h-[85vh] rounded-xl object-contain border border-slate-700 shadow-2xl">
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-xl border text-xs font-semibold transform transition duration-300 translate-y-24 opacity-0 flex items-center gap-2.5">
+        <span id="toastIcon"></span>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
