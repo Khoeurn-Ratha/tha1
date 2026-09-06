@@ -13,13 +13,157 @@ let currentUser = {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
+    initInteractiveBackground();
     setDefaultDateTime();
     renderAuthUI();
     fetchTrades();
     verifyAuth();
 });
 
-// Helper: Get Auth headers
+// ================= 60FPS INTERACTIVE CANVAS BACKGROUND =================
+function initInteractiveBackground() {
+    const canvas = document.getElementById('bgCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createParticles();
+    });
+
+    // Mouse coordinates
+    const mouse = { x: -1000, y: -1000, radius: 140 };
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+    window.addEventListener('mouseleave', () => {
+        mouse.x = -1000;
+        mouse.y = -1000;
+    });
+
+    // Particle nodes
+    let particles = [];
+    const particleCount = Math.min(75, Math.floor((width * height) / 18000));
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.7;
+            this.vy = (Math.random() - 0.5) * 0.7;
+            this.radius = Math.random() * 2 + 1;
+            // 60% emerald/cyan, 40% blue
+            const colors = ['#10B981', '#38BDF8', '#3B82F6', '#818CF8'];
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+            this.alpha = Math.random() * 0.5 + 0.2;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // Bounce on edges
+            if (this.x < 0 || this.x > width) this.vx *= -1;
+            if (this.y < 0 || this.y > height) this.vy *= -1;
+
+            // Mouse repulsion
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < mouse.radius) {
+                const force = (mouse.radius - dist) / mouse.radius;
+                const angle = Math.atan2(dy, dx);
+                this.x -= Math.cos(angle) * force * 2.5;
+                this.y -= Math.sin(angle) * force * 2.5;
+            }
+        }
+
+        draw() {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = this.alpha;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = this.color;
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+    }
+    createParticles();
+
+    // Market wave phase
+    let waveStep = 0;
+
+    function render() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Draw connecting constellation lines
+        const maxDist = 130;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < maxDist) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    const alpha = (1 - dist / maxDist) * 0.15;
+                    ctx.strokeStyle = `rgba(59, 130, 246, ${alpha})`;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // 2. Draw and update particles
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        // 3. Gentle market sine wave at bottom
+        waveStep += 0.015;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, height);
+        for (let x = 0; x <= width; x += 15) {
+            const y = height - 40 + Math.sin(x * 0.005 + waveStep) * 20 + Math.cos(x * 0.01 - waveStep * 0.8) * 12;
+            ctx.lineTo(x, y);
+        }
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        const waveGradient = ctx.createLinearGradient(0, height - 80, 0, height);
+        waveGradient.addColorStop(0, 'rgba(16, 185, 129, 0.04)');
+        waveGradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        ctx.fillStyle = waveGradient;
+        ctx.fill();
+        ctx.restore();
+
+        requestAnimationFrame(render);
+    }
+
+    render();
+}
+
+// ================= AUTH MANAGEMENT =================
+
 function getAuthHeaders() {
     const headers = {};
     if (currentUser.token) {
@@ -28,7 +172,6 @@ function getAuthHeaders() {
     return headers;
 }
 
-// Check session validity with backend
 async function verifyAuth() {
     if (!currentUser.token) {
         setViewerState();
@@ -48,7 +191,7 @@ async function verifyAuth() {
             setViewerState();
         }
     } catch (e) {
-        console.warn('Auth check skipped:', e);
+        console.warn('Auth verify skipped:', e);
     }
     renderAuthUI();
 }
@@ -63,7 +206,6 @@ function setViewerState() {
     localStorage.setItem('tracker_name', 'Viewer');
 }
 
-// Render role-based UI (Admin vs Viewer)
 function renderAuthUI() {
     const userContainer = document.getElementById('userBadgeContainer');
     const adminElements = document.querySelectorAll('.admin-only');
@@ -108,7 +250,6 @@ function renderAuthUI() {
     renderTradesTable(allTradesData);
 }
 
-// Select role tab in login modal
 function selectLoginRole(role) {
     const tabAdmin = document.getElementById('tabAdmin');
     const tabUser = document.getElementById('tabUser');
@@ -127,7 +268,6 @@ function selectLoginRole(role) {
     }
 }
 
-// Toggle password visibility in login modal
 function togglePasswordVisibility() {
     const pwdInput = document.getElementById('loginPassword');
     const icon = document.getElementById('passwordEyeIcon');
@@ -142,7 +282,6 @@ function togglePasswordVisibility() {
     }
 }
 
-// Format ISO date to local input format
 function setDefaultDateTime() {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -151,7 +290,7 @@ function setDefaultDateTime() {
     if (dateInput) dateInput.value = formatted;
 }
 
-// Fetch all trades and stats
+// Fetch trades and calculate stats
 async function fetchTrades() {
     try {
         const res = await fetch('/api/trades');
@@ -168,14 +307,12 @@ async function fetchTrades() {
     }
 }
 
-// Update DOM elements with calculated stats
 function updateDashboard(data) {
     const stats = data.stats;
     const initial = stats.initial_balance || 10.0;
     const target = stats.target_balance || 100.0;
     const current = stats.current_balance || 10.0;
 
-    // Balance & Gain
     const displayBalance = document.getElementById('displayBalance');
     if (displayBalance) displayBalance.textContent = `$${current.toFixed(2)}`;
 
@@ -193,7 +330,6 @@ function updateDashboard(data) {
     const remainingEl = document.getElementById('remainingAmount');
     if (remainingEl) remainingEl.textContent = `$${remaining.toFixed(2)}`;
 
-    // Progress Bar
     const progressPct = stats.progress_pct || 0;
     const progressBar = document.getElementById('progressBar');
     if (progressBar) progressBar.style.width = `${Math.min(100, progressPct)}%`;
@@ -201,7 +337,6 @@ function updateDashboard(data) {
     const progressPctText = document.getElementById('progressPctText');
     if (progressPctText) progressPctText.textContent = `${progressPct}% Completed`;
 
-    // Daily Setup Counter
     const todayCount = stats.today_setups || 0;
     const todayCountEl = document.getElementById('todayCount');
     if (todayCountEl) todayCountEl.textContent = todayCount;
@@ -217,7 +352,6 @@ function updateDashboard(data) {
             : 'w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10';
     }
 
-    // Daily limit warning
     const dailyAlert = document.getElementById('dailyLimitAlert');
     if (dailyAlert) {
         if (todayCount >= 2) {
@@ -227,7 +361,6 @@ function updateDashboard(data) {
         }
     }
 
-    // Stat Cards
     document.getElementById('statWinRate').textContent = `${stats.win_rate || 0}%`;
     document.getElementById('statWinLossCount').textContent = `${stats.wins || 0}W - ${stats.losses || 0}L - ${stats.breakeven || 0}BE`;
     document.getElementById('statTotalTrades').textContent = stats.total_trades || 0;
@@ -240,19 +373,16 @@ function updateDashboard(data) {
     const riskPct = stats.rule_adherence ? stats.rule_adherence.risk_1pct_pct : 100;
     document.getElementById('statRiskScore').textContent = `${riskPct}%`;
 
-    // Cycle breakdown
     document.getElementById('badgeWins').textContent = stats.wins || 0;
     document.getElementById('badgeLosses').textContent = stats.losses || 0;
     document.getElementById('badgeBE').textContent = stats.breakeven || 0;
 
-    // Auto set Setup # in modal
     const setupSelect = document.getElementById('inputSetupNumber');
     if (setupSelect && !document.getElementById('editTradeId').value) {
         setupSelect.value = todayCount >= 1 ? '2' : '1';
     }
 }
 
-// Render Line Chart and Donut Chart
 function renderCharts(balanceHistory, stats) {
     const ctxLine = document.getElementById('balanceChart').getContext('2d');
     const labels = balanceHistory.map(item => item.date);
@@ -270,7 +400,7 @@ function renderCharts(balanceHistory, stats) {
                     label: 'Balance ($)',
                     data: balanceData,
                     borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.25,
@@ -301,7 +431,7 @@ function renderCharts(balanceHistory, stats) {
                     backgroundColor: '#0F1422',
                     titleColor: '#F8FAFC',
                     bodyColor: '#CBD5E1',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.12)',
                     borderWidth: 1,
                     padding: 10,
                     callbacks: {
@@ -359,7 +489,7 @@ function renderCharts(balanceHistory, stats) {
                 tooltip: {
                     enabled: hasData,
                     backgroundColor: '#0F1422',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderColor: 'rgba(255, 255, 255, 0.12)',
                     borderWidth: 1,
                     padding: 10
                 }
@@ -368,7 +498,6 @@ function renderCharts(balanceHistory, stats) {
     });
 }
 
-// Render Trade History Table
 function renderTradesTable(trades) {
     const tbody = document.getElementById('tradesTableBody');
     if (!tbody) return;
@@ -451,7 +580,6 @@ function renderTradesTable(trades) {
     }).join('');
 }
 
-// Filter buttons
 function filterTrades(type) {
     currentFilter = type;
     ['all', 'wins', 'losses'].forEach(f => {
@@ -467,12 +595,10 @@ function filterTrades(type) {
     renderTradesTable(allTradesData);
 }
 
-// Quick pair tag helper
 function setPair(symbol) {
     document.getElementById('inputPair').value = symbol;
 }
 
-// Image preview
 function previewImage(input) {
     const previewContainer = document.getElementById('imagePreviewContainer');
     const placeholder = document.getElementById('uploadPlaceholder');
@@ -491,8 +617,6 @@ function previewImage(input) {
         placeholder.classList.remove('hidden');
     }
 }
-
-// ----------------- AUTH FUNCTIONS -----------------
 
 function openLoginModal() {
     document.getElementById('loginModal').classList.remove('hidden');
@@ -552,8 +676,6 @@ async function logout() {
     renderAuthUI();
     showToast('Signed out. Switched to Viewer mode.', 'info');
 }
-
-// ----------------- TRADE CREATE & EDIT MODALS -----------------
 
 function openCreateTradeModal() {
     if (currentUser.role !== 'admin') {

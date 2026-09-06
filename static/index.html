@@ -13,8 +13,8 @@
                 extend: {
                     colors: {
                         brand: {
-                            dark: '#06080E',
-                            surface: '#0D111B',
+                            dark: '#05070D',
+                            surface: '#0B0F19',
                             border: 'rgba(255,255,255,0.08)',
                             blue: '#3B82F6',
                             emerald: '#10B981',
@@ -34,19 +34,18 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white relative">
 
-    <!-- Ambient Aurora & Tech Grid Background -->
-    <div class="aurora-bg">
-        <div class="orb orb-blue"></div>
-        <div class="orb orb-emerald"></div>
-        <div class="orb orb-indigo"></div>
-    </div>
+    <!-- Interactive 60fps HTML5 Canvas Particle Network -->
+    <canvas id="bgCanvas"></canvas>
+    <div class="cyber-grid-overlay"></div>
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
 
     <!-- Top Navigation Bar -->
-    <header class="border-b border-white/[0.06] bg-[#070A12]/85 backdrop-blur-xl sticky top-0 z-40 transition shadow-lg shadow-black/20">
+    <header class="border-b border-white/[0.07] bg-[#070A12]/85 backdrop-blur-2xl sticky top-0 z-40 transition shadow-xl shadow-black/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo -->
             <div class="flex items-center space-x-3.5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/25 border border-white/20">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
                     <i class="fa-solid fa-chart-line text-white text-base"></i>
                 </div>
                 <div>
@@ -63,13 +62,13 @@
                 <div id="userBadgeContainer" class="flex items-center gap-2"></div>
 
                 <!-- Admin Action: Test Telegram -->
-                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Alerts" class="admin-only hidden px-3.5 py-2 rounded-xl bg-black/40 hover:bg-white/[0.06] text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-white/10 shadow-sm">
+                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Alerts" class="admin-only hidden px-3.5 py-2 rounded-xl bg-black/40 hover:bg-white/[0.08] text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-white/10 shadow-sm">
                     <i class="fa-brands fa-telegram text-sky-400 text-sm"></i>
                     <span class="hidden md:inline">Test Telegram</span>
                 </button>
 
                 <!-- Admin Action: Log Trade -->
-                <button id="navLogTradeBtn" onclick="openCreateTradeModal()" class="admin-only hidden px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white text-xs font-bold shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center gap-2 border border-white/20">
+                <button id="navLogTradeBtn" onclick="openCreateTradeModal()" class="admin-only hidden px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white text-xs font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex items-center gap-2 border border-white/20">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Log Trade</span>
                 </button>
@@ -78,9 +77,9 @@
     </header>
 
     <!-- Viewer Read-Only Banner -->
-    <div id="viewerBanner" class="hidden bg-[#0A0E1A]/90 border-b border-white/[0.06] px-4 py-2 text-center text-xs text-slate-300 flex items-center justify-center gap-2.5">
+    <div id="viewerBanner" class="hidden bg-[#0A0E1A]/95 border-b border-white/[0.07] px-4 py-2 text-center text-xs text-slate-300 flex items-center justify-center gap-2.5 backdrop-blur-md">
         <span class="px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-bold text-[10px] border border-blue-500/30">READ-ONLY MODE</span>
-        <span>You are currently viewing in read-only mode. <button onclick="openLoginModal()" class="text-blue-400 font-semibold hover:text-blue-300 underline ml-1">Sign in with Admin</button> to log or edit trades.</span>
+        <span>You are viewing in read-only mode. <button onclick="openLoginModal()" class="text-blue-400 font-semibold hover:text-blue-300 underline ml-1">Sign in with Admin</button> to log or edit trades.</span>
     </div>
 
     <!-- Main Content Area -->
@@ -91,7 +90,8 @@
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
                     <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-blue-400 mb-1.5">
-                        <i class="fa-solid fa-bullseye text-xs"></i> 10x Account Growth Challenge
+                        <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping mr-0.5"></span>
+                        <span>10x Account Growth Challenge</span>
                     </div>
                     <div class="flex items-baseline gap-3">
                         <h1 class="text-4xl sm:text-5xl font-extrabold text-white font-mono-data tracking-tight" id="displayBalance">$10.00</h1>
@@ -104,7 +104,7 @@
                 </div>
 
                 <!-- Daily Setup Counter -->
-                <div class="flex items-center gap-4 bg-[#080B13]/90 border border-white/[0.08] px-5 py-3.5 rounded-2xl shadow-inner">
+                <div class="flex items-center gap-4 bg-[#070A12]/95 border border-white/[0.08] px-5 py-3.5 rounded-2xl shadow-inner">
                     <div class="text-right">
                         <div class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Today's Setups</div>
                         <div class="text-xl font-bold flex items-center justify-end gap-1.5 font-mono-data" id="todaySetupsDisplay">
@@ -138,7 +138,7 @@
             <div id="dailyLimitAlert" class="hidden mt-4 p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-rose-200 text-xs flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-rose-400 text-lg flex-shrink-0"></i>
                 <div>
-                    <span class="font-bold">Daily Limit Hit (2/2 Setups)!</span> You have executed your 2 allowed setups for today. Do not overtrade — protect your capital and discipline!
+                    <span class="font-bold">Daily Limit Hit (2/2 Setups)!</span> You have completed your 2 allowed setups for today. Stop trading, preserve your gains, and avoid overtrading!
                 </div>
             </div>
         </section>
@@ -152,7 +152,7 @@
                     <div class="text-2xl font-bold text-white mt-1 font-mono-data" id="statWinRate">0.0%</div>
                     <span class="text-xs text-slate-500 font-mono-data" id="statWinLossCount">0W - 0L - 0BE</span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg shadow-inner">
                     <i class="fa-solid fa-trophy"></i>
                 </div>
             </div>
@@ -164,7 +164,7 @@
                     <div class="text-2xl font-bold text-white mt-1 font-mono-data" id="statTotalTrades">0</div>
                     <span class="text-xs text-slate-500">Documented</span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg">
+                <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg shadow-inner">
                     <i class="fa-solid fa-receipt"></i>
                 </div>
             </div>
@@ -176,7 +176,7 @@
                     <div class="text-2xl font-bold text-indigo-400 mt-1 font-mono-data" id="statDiscipline">100%</div>
                     <span class="text-xs text-slate-500">4H HTF + 3/5m Entry</span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg">
+                <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg shadow-inner">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
             </div>
@@ -188,7 +188,7 @@
                     <div class="text-2xl font-bold text-amber-400 mt-1 font-mono-data" id="statRiskScore">100%</div>
                     <span class="text-xs text-slate-500">Risk per trade respected</span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg shadow-inner">
                     <i class="fa-solid fa-percent"></i>
                 </div>
             </div>
@@ -201,9 +201,9 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-chart-area text-blue-400"></i> Equity Curve & $100 Target
+                            <i class="fa-solid fa-chart-area text-blue-400"></i> Equity Progression & $100 Target
                         </h2>
-                        <span class="text-xs text-slate-400">Account balance progression vs target goal</span>
+                        <span class="text-xs text-slate-400">Account balance curve vs target goal</span>
                     </div>
                     <div class="flex items-center gap-3 text-xs font-mono-data">
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Balance</span>
@@ -292,7 +292,7 @@
             <!-- Table Container -->
             <div class="overflow-x-auto rounded-xl border border-white/[0.06]">
                 <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-[#080B13] text-slate-400 uppercase text-[11px] font-semibold border-b border-white/[0.06]">
+                    <thead class="bg-[#070A12] text-slate-400 uppercase text-[11px] font-semibold border-b border-white/[0.06]">
                         <tr>
                             <th class="py-3 px-4">Date / Time</th>
                             <th class="py-3 px-4">Pair</th>
@@ -305,7 +305,7 @@
                             <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="tradesTableBody" class="divide-y divide-white/[0.04] bg-[#070A11]/60">
+                    <tbody id="tradesTableBody" class="divide-y divide-white/[0.04] bg-[#070910]/60">
                         <tr>
                             <td colspan="9" class="text-center py-10 text-slate-500">
                                 <i class="fa-solid fa-spinner fa-spin text-lg mb-2 block text-blue-500"></i>
@@ -326,68 +326,68 @@
 
     <!-- ================= MODALS ================= -->
 
-    <!-- 1. HIGH-END CINEMATIC LOGIN MODAL -->
+    <!-- 1. HIGH-END CINEMATIC LOGIN MODAL WITH ROTATING CONIC BORDER -->
     <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
-        <div class="login-card-shell modal-dialog w-full max-w-sm rounded-3xl p-6 relative overflow-hidden">
-            <!-- Ambient Card Glow -->
-            <div class="absolute -right-16 -top-16 w-36 h-36 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none"></div>
-
-            <div class="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5 relative z-10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
-                        <i class="fa-solid fa-lock text-white text-sm"></i>
+        <div class="animated-border-wrapper w-full max-w-sm">
+            <div class="login-card-inner p-6 relative">
+                <!-- Header -->
+                <div class="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
+                            <i class="fa-solid fa-lock text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white tracking-wide">Terminal Access</h3>
+                            <p class="text-[10px] text-slate-400 font-mono-data uppercase tracking-wider">GATEWAY // AUTHENTICATION</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white tracking-wide">Terminal Access</h3>
-                        <p class="text-[11px] text-slate-400 font-mono-data">GATEWAY // AUTHENTICATION</p>
-                    </div>
-                </div>
-                <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/[0.06]">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
-
-            <!-- Role Selector Tabs (Only sets username, never exposes passwords) -->
-            <div class="grid grid-cols-2 gap-1.5 p-1 bg-black/40 border border-white/[0.08] rounded-xl mb-4 relative z-10">
-                <button type="button" id="tabAdmin" onclick="selectLoginRole('admin')" class="py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5">
-                    <span>👑 Admin</span>
-                </button>
-                <button type="button" id="tabUser" onclick="selectLoginRole('user')" class="py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
-                    <span>👁️ Viewer</span>
-                </button>
-            </div>
-
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
-                <!-- Username -->
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Username</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                        <input type="text" id="loginUsername" value="admin" required placeholder="Enter username" class="pro-input w-full pl-9 pr-3 py-2.5 text-sm focus:outline-none font-mono-data">
-                    </div>
-                </div>
-
-                <!-- Password with eye toggle -->
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Password</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                        <input type="password" id="loginPassword" required placeholder="••••••••" class="pro-input w-full pl-9 pr-10 py-2.5 text-sm focus:outline-none font-mono-data tracking-widest">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3 text-slate-500 hover:text-slate-300 text-xs transition">
-                            <i id="passwordEyeIcon" class="fa-regular fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="pt-2">
-                    <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2 border border-white/20">
-                        <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
-                        <span>Authenticate</span>
+                    <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/[0.06]">
+                        <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
-            </form>
+
+                <!-- Role Selector Tabs -->
+                <div class="grid grid-cols-2 gap-1.5 p-1 bg-black/40 border border-white/[0.08] rounded-xl mb-4">
+                    <button type="button" id="tabAdmin" onclick="selectLoginRole('admin')" class="py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5">
+                        <span>👑 Admin</span>
+                    </button>
+                    <button type="button" id="tabUser" onclick="selectLoginRole('user')" class="py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                        <span>👁️ Viewer</span>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Username</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                            <input type="text" id="loginUsername" value="admin" required placeholder="Enter username" class="pro-input w-full pl-9 pr-3 py-2.5 text-sm focus:outline-none font-mono-data">
+                        </div>
+                    </div>
+
+                    <!-- Password with eye toggle -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                            <input type="password" id="loginPassword" required placeholder="••••••••" class="pro-input w-full pl-9 pr-10 py-2.5 text-sm focus:outline-none font-mono-data tracking-widest">
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3 text-slate-500 hover:text-slate-300 text-xs transition">
+                                <i id="passwordEyeIcon" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-2">
+                        <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2 border border-white/20">
+                            <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
+                            <span>Authenticate</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
