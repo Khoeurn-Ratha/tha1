@@ -13,15 +13,15 @@ let currentUser = {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
-    initInteractiveBackground();
+    initVibrantMarketBackground();
     setDefaultDateTime();
     renderAuthUI();
     fetchTrades();
     verifyAuth();
 });
 
-// ================= 60FPS INTERACTIVE CANVAS BACKGROUND =================
-function initInteractiveBackground() {
+// ================= VIBRANT CANDLESTICK & PARTICLE CANVAS BACKGROUND =================
+function initVibrantMarketBackground() {
     const canvas = document.getElementById('bgCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -32,11 +32,10 @@ function initInteractiveBackground() {
     window.addEventListener('resize', () => {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
-        createParticles();
+        initEntities();
     });
 
-    // Mouse coordinates
-    const mouse = { x: -1000, y: -1000, radius: 140 };
+    const mouse = { x: -1000, y: -1000, radius: 160 };
     window.addEventListener('mousemove', (e) => {
         mouse.x = e.clientX;
         mouse.y = e.clientY;
@@ -46,40 +45,86 @@ function initInteractiveBackground() {
         mouse.y = -1000;
     });
 
-    // Particle nodes
-    let particles = [];
-    const particleCount = Math.min(75, Math.floor((width * height) / 18000));
+    // 1. Floating Candlesticks (Green & Red Market Bars)
+    let candlesticks = [];
+    class Candlestick {
+        constructor() {
+            this.reset(true);
+        }
 
+        reset(initial = false) {
+            this.x = Math.random() * width;
+            this.y = initial ? Math.random() * height : height + 50;
+            this.vy = -(Math.random() * 0.4 + 0.2); // Slowly rises up
+            this.vx = (Math.random() - 0.5) * 0.15;
+            this.isBullish = Math.random() > 0.45;
+            this.bodyHeight = Math.random() * 28 + 12;
+            this.bodyWidth = Math.random() * 6 + 4;
+            this.wickTop = Math.random() * 12 + 4;
+            this.wickBottom = Math.random() * 12 + 4;
+            this.alpha = Math.random() * 0.22 + 0.1;
+            this.color = this.isBullish ? '#10B981' : '#F43F5E';
+        }
+
+        update() {
+            this.y += this.vy;
+            this.x += this.vx;
+            if (this.y < -60) this.reset();
+        }
+
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.strokeStyle = this.color;
+            ctx.fillStyle = this.color;
+            ctx.lineWidth = 1.2;
+
+            // Upper Wick
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.bodyWidth / 2, this.y - this.wickTop);
+            ctx.lineTo(this.x + this.bodyWidth / 2, this.y);
+            ctx.stroke();
+
+            // Lower Wick
+            ctx.beginPath();
+            ctx.moveTo(this.x + this.bodyWidth / 2, this.y + this.bodyHeight);
+            ctx.lineTo(this.x + this.bodyWidth / 2, this.y + this.bodyHeight + this.wickBottom);
+            ctx.stroke();
+
+            // Candle Body
+            ctx.fillRect(this.x, this.y, this.bodyWidth, this.bodyHeight);
+            ctx.restore();
+        }
+    }
+
+    // 2. Data Nodes & Network
+    let particles = [];
     class Particle {
         constructor() {
             this.x = Math.random() * width;
             this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 0.7;
-            this.vy = (Math.random() - 0.5) * 0.7;
-            this.radius = Math.random() * 2 + 1;
-            // 60% emerald/cyan, 40% blue
-            const colors = ['#10B981', '#38BDF8', '#3B82F6', '#818CF8'];
+            this.vx = (Math.random() - 0.5) * 0.8;
+            this.vy = (Math.random() - 0.5) * 0.8;
+            this.radius = Math.random() * 2.5 + 1.2;
+            const colors = ['#10B981', '#06B6D4', '#3B82F6', '#818CF8'];
             this.color = colors[Math.floor(Math.random() * colors.length)];
-            this.alpha = Math.random() * 0.5 + 0.2;
+            this.alpha = Math.random() * 0.6 + 0.3;
         }
 
         update() {
             this.x += this.vx;
             this.y += this.vy;
-
-            // Bounce on edges
             if (this.x < 0 || this.x > width) this.vx *= -1;
             if (this.y < 0 || this.y > height) this.vy *= -1;
 
-            // Mouse repulsion
             const dx = mouse.x - this.x;
             const dy = mouse.y - this.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < mouse.radius) {
                 const force = (mouse.radius - dist) / mouse.radius;
                 const angle = Math.atan2(dy, dx);
-                this.x -= Math.cos(angle) * force * 2.5;
-                this.y -= Math.sin(angle) * force * 2.5;
+                this.x -= Math.cos(angle) * force * 3;
+                this.y -= Math.sin(angle) * force * 3;
             }
         }
 
@@ -89,29 +134,37 @@ function initInteractiveBackground() {
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
             ctx.fillStyle = this.color;
             ctx.globalAlpha = this.alpha;
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = 10;
             ctx.shadowColor = this.color;
             ctx.fill();
             ctx.restore();
         }
     }
 
-    function createParticles() {
+    function initEntities() {
         particles = [];
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
+        const count = Math.min(80, Math.floor((width * height) / 16000));
+        for (let i = 0; i < count; i++) particles.push(new Particle());
+
+        candlesticks = [];
+        const candleCount = Math.min(25, Math.floor(width / 60));
+        for (let i = 0; i < candleCount; i++) candlesticks.push(new Candlestick());
     }
-    createParticles();
+    initEntities();
 
-    // Market wave phase
-    let waveStep = 0;
+    let wavePhase = 0;
 
-    function render() {
+    function animate() {
         ctx.clearRect(0, 0, width, height);
 
-        // 1. Draw connecting constellation lines
-        const maxDist = 130;
+        // 1. Draw floating candlesticks
+        candlesticks.forEach(c => {
+            c.update();
+            c.draw();
+        });
+
+        // 2. Draw connecting constellation lines
+        const maxDist = 135;
         for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
                 const dx = particles[i].x - particles[j].x;
@@ -123,43 +176,53 @@ function initInteractiveBackground() {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    const alpha = (1 - dist / maxDist) * 0.15;
+                    const alpha = (1 - dist / maxDist) * 0.22;
                     ctx.strokeStyle = `rgba(59, 130, 246, ${alpha})`;
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = 1.1;
                     ctx.stroke();
                     ctx.restore();
                 }
             }
         }
 
-        // 2. Draw and update particles
+        // 3. Draw particles
         particles.forEach(p => {
             p.update();
             p.draw();
         });
 
-        // 3. Gentle market sine wave at bottom
-        waveStep += 0.015;
+        // 4. Undulating market sine wave with glow
+        wavePhase += 0.018;
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(0, height);
-        for (let x = 0; x <= width; x += 15) {
-            const y = height - 40 + Math.sin(x * 0.005 + waveStep) * 20 + Math.cos(x * 0.01 - waveStep * 0.8) * 12;
+        for (let x = 0; x <= width; x += 12) {
+            const y = height - 45 + Math.sin(x * 0.006 + wavePhase) * 24 + Math.cos(x * 0.012 - wavePhase * 0.8) * 14;
             ctx.lineTo(x, y);
         }
         ctx.lineTo(width, height);
         ctx.closePath();
-        const waveGradient = ctx.createLinearGradient(0, height - 80, 0, height);
-        waveGradient.addColorStop(0, 'rgba(16, 185, 129, 0.04)');
-        waveGradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        const waveGradient = ctx.createLinearGradient(0, height - 90, 0, height);
+        waveGradient.addColorStop(0, 'rgba(16, 185, 129, 0.06)');
+        waveGradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
         ctx.fillStyle = waveGradient;
         ctx.fill();
+
+        // Wave top glowing line
+        ctx.beginPath();
+        for (let x = 0; x <= width; x += 12) {
+            const y = height - 45 + Math.sin(x * 0.006 + wavePhase) * 24 + Math.cos(x * 0.012 - wavePhase * 0.8) * 14;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
         ctx.restore();
 
-        requestAnimationFrame(render);
+        requestAnimationFrame(animate);
     }
-
-    render();
+    animate();
 }
 
 // ================= AUTH MANAGEMENT =================
@@ -220,11 +283,11 @@ function renderAuthUI() {
 
         if (userContainer) {
             userContainer.innerHTML = `
-                <div class="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300">
+                <div class="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-300 shadow-sm">
                     <span class="text-xs">👑</span>
                     <span class="hidden sm:inline">${currentUser.displayName}</span>
                 </div>
-                <button onclick="logout()" title="Sign out" class="p-2 rounded-xl bg-black/40 border border-white/10 hover:text-rose-400 text-slate-400 text-xs transition">
+                <button onclick="logout()" title="Sign out" class="p-2 rounded-xl bg-black/40 border border-white/10 hover:border-rose-500/50 hover:text-rose-400 text-slate-400 text-xs transition">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                 </button>
             `;
@@ -235,11 +298,11 @@ function renderAuthUI() {
 
         if (userContainer) {
             userContainer.innerHTML = `
-                <div class="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-400">
+                <div class="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-400">
                     <i class="fa-solid fa-eye text-xs"></i>
                     <span class="hidden sm:inline">Viewer</span>
                 </div>
-                <button onclick="openLoginModal()" class="px-3.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white font-bold text-xs border border-white/10 transition flex items-center gap-1.5 shadow-sm">
+                <button onclick="openLoginModal()" class="px-3.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white font-bold text-xs border border-white/10 hover:border-blue-500/50 transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
                     <span>Sign In</span>
                 </button>
@@ -290,7 +353,7 @@ function setDefaultDateTime() {
     if (dateInput) dateInput.value = formatted;
 }
 
-// Fetch trades and calculate stats
+// Fetch trades and update stats
 async function fetchTrades() {
     try {
         const res = await fetch('/api/trades');
@@ -312,7 +375,9 @@ function updateDashboard(data) {
     const initial = stats.initial_balance || 10.0;
     const target = stats.target_balance || 100.0;
     const current = stats.current_balance || 10.0;
+    const totalTrades = stats.total_trades || 0;
 
+    // Header Balance & Gain
     const displayBalance = document.getElementById('displayBalance');
     if (displayBalance) displayBalance.textContent = `$${current.toFixed(2)}`;
 
@@ -322,8 +387,8 @@ function updateDashboard(data) {
         const sign = current >= initial ? '+' : '';
         gainBadge.textContent = `${sign}${gainPct}%`;
         gainBadge.className = current >= initial 
-            ? 'text-xs font-bold font-mono-data px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-            : 'text-xs font-bold font-mono-data px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20';
+            ? 'text-xs font-bold font-mono-data px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+            : 'text-xs font-bold font-mono-data px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/25';
     }
 
     const remaining = Math.max(0, target - current);
@@ -345,34 +410,81 @@ function updateDashboard(data) {
     const pill2 = document.getElementById('pill2');
     if (pill1 && pill2) {
         pill1.className = todayCount >= 1 
-            ? 'w-4 h-9 rounded-lg bg-blue-500 shadow-lg shadow-blue-500/40 border border-blue-400' 
+            ? 'w-4 h-9 rounded-lg bg-blue-500 shadow-lg shadow-blue-500/50 border border-blue-400' 
             : 'w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10';
         pill2.className = todayCount >= 2 
-            ? 'w-4 h-9 rounded-lg bg-indigo-500 shadow-lg shadow-indigo-500/40 border border-indigo-400' 
+            ? 'w-4 h-9 rounded-lg bg-indigo-500 shadow-lg shadow-indigo-500/50 border border-indigo-400' 
             : 'w-4 h-9 rounded-lg bg-slate-800/80 border border-white/10';
     }
 
     const dailyAlert = document.getElementById('dailyLimitAlert');
     if (dailyAlert) {
-        if (todayCount >= 2) {
-            dailyAlert.classList.remove('hidden');
-        } else {
-            dailyAlert.classList.add('hidden');
-        }
+        if (todayCount >= 2) dailyAlert.classList.remove('hidden');
+        else dailyAlert.classList.add('hidden');
     }
 
-    document.getElementById('statWinRate').textContent = `${stats.win_rate || 0}%`;
-    document.getElementById('statWinLossCount').textContent = `${stats.wins || 0}W - ${stats.losses || 0}L - ${stats.breakeven || 0}BE`;
-    document.getElementById('statTotalTrades').textContent = stats.total_trades || 0;
+    // ================= 4 RE-ENGINEERED STAT CARDS =================
+    // 1. Win Rate Card
+    const winRateEl = document.getElementById('statWinRate');
+    const winLossCountEl = document.getElementById('statWinLossCount');
+    if (totalTrades === 0) {
+        winRateEl.textContent = '0.0%';
+        winRateEl.className = 'text-2xl font-bold text-slate-400 mt-1 font-mono-data';
+        winLossCountEl.textContent = 'No trades recorded';
+    } else {
+        winRateEl.textContent = `${stats.win_rate}%`;
+        winRateEl.className = stats.win_rate >= 50 
+            ? 'text-2xl font-bold text-emerald-400 mt-1 font-mono-data' 
+            : 'text-2xl font-bold text-rose-400 mt-1 font-mono-data';
+        winLossCountEl.textContent = `${stats.wins}W - ${stats.losses}L - ${stats.breakeven}BE`;
+    }
 
-    const htfPct = stats.rule_adherence ? stats.rule_adherence.htf_4h_pct : 100;
-    const ltfPct = stats.rule_adherence ? stats.rule_adherence.ltf_entry_pct : 100;
-    const avgRulePct = Math.round((htfPct + ltfPct) / 2);
-    document.getElementById('statDiscipline').textContent = `${avgRulePct}%`;
+    // 2. Net Profit Card
+    const netPnlEl = document.getElementById('statNetPnl');
+    const profitFactorEl = document.getElementById('statProfitFactor');
+    const totalPnl = stats.total_pnl || 0.0;
+    const pnlSign = totalPnl >= 0 ? '+' : '';
+    netPnlEl.textContent = `${pnlSign}$${totalPnl.toFixed(2)}`;
+    netPnlEl.className = totalPnl >= 0 
+        ? 'text-2xl font-bold text-emerald-400 mt-1 font-mono-data' 
+        : 'text-2xl font-bold text-rose-400 mt-1 font-mono-data';
+    profitFactorEl.textContent = `Profit Factor: ${stats.profit_factor || 0.0} • ${totalTrades} Trades`;
 
-    const riskPct = stats.rule_adherence ? stats.rule_adherence.risk_1pct_pct : 100;
-    document.getElementById('statRiskScore').textContent = `${riskPct}%`;
+    // 3. Discipline Rate Card (Fixed: 0% when 0 trades)
+    const disciplineEl = document.getElementById('statDiscipline');
+    const disciplineSubEl = document.getElementById('statDisciplineSub');
+    if (totalTrades === 0) {
+        disciplineEl.textContent = '0%';
+        disciplineEl.className = 'text-2xl font-bold text-slate-400 mt-1 font-mono-data';
+        disciplineSubEl.textContent = 'No trades logged yet';
+    } else {
+        const htfPct = stats.rule_adherence ? stats.rule_adherence.htf_4h_pct : 0;
+        const ltfPct = stats.rule_adherence ? stats.rule_adherence.ltf_entry_pct : 0;
+        const avgRulePct = Math.round((htfPct + ltfPct) / 2);
+        disciplineEl.textContent = `${avgRulePct}%`;
+        disciplineEl.className = avgRulePct >= 80 
+            ? 'text-2xl font-bold text-indigo-400 mt-1 font-mono-data' 
+            : 'text-2xl font-bold text-amber-400 mt-1 font-mono-data';
+        disciplineSubEl.textContent = `4H (${htfPct}%) • 3/5m (${ltfPct}%)`;
+    }
 
+    // 4. 1% Risk Rule Card (Fixed: 0% when 0 trades)
+    const riskScoreEl = document.getElementById('statRiskScore');
+    const riskSubEl = document.getElementById('statRiskSub');
+    if (totalTrades === 0) {
+        riskScoreEl.textContent = '0%';
+        riskScoreEl.className = 'text-2xl font-bold text-slate-400 mt-1 font-mono-data';
+        riskSubEl.textContent = 'No trades logged yet';
+    } else {
+        const riskPct = stats.rule_adherence ? stats.rule_adherence.risk_1pct_pct : 0;
+        riskScoreEl.textContent = `${riskPct}%`;
+        riskScoreEl.className = riskPct >= 90 
+            ? 'text-2xl font-bold text-amber-400 mt-1 font-mono-data' 
+            : 'text-2xl font-bold text-rose-400 mt-1 font-mono-data';
+        riskSubEl.textContent = `${riskPct}% adherence maintained`;
+    }
+
+    // Cycle breakdown
     document.getElementById('badgeWins').textContent = stats.wins || 0;
     document.getElementById('badgeLosses').textContent = stats.losses || 0;
     document.getElementById('badgeBE').textContent = stats.breakeven || 0;
@@ -400,7 +512,7 @@ function renderCharts(balanceHistory, stats) {
                     label: 'Balance ($)',
                     data: balanceData,
                     borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.14)',
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.25,
@@ -408,13 +520,13 @@ function renderCharts(balanceHistory, stats) {
                     pointBorderColor: '#0E131F',
                     pointBorderWidth: 2,
                     pointRadius: 4,
-                    pointHoverRadius: 6
+                    pointHoverRadius: 7
                 },
                 {
                     label: '$100 Target Threshold',
                     data: targetData,
                     borderColor: '#10B981',
-                    borderWidth: 1.5,
+                    borderWidth: 1.8,
                     borderDash: [6, 6],
                     fill: false,
                     pointRadius: 0
@@ -428,10 +540,10 @@ function renderCharts(balanceHistory, stats) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#0F1422',
+                    backgroundColor: '#0A0E18',
                     titleColor: '#F8FAFC',
                     bodyColor: '#CBD5E1',
-                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
                     borderWidth: 1,
                     padding: 10,
                     callbacks: {
@@ -477,7 +589,7 @@ function renderCharts(balanceHistory, stats) {
                 data: cycleData,
                 backgroundColor: cycleColors,
                 borderWidth: 0,
-                hoverOffset: 6
+                hoverOffset: 8
             }]
         },
         options: {
@@ -488,8 +600,8 @@ function renderCharts(balanceHistory, stats) {
                 legend: { display: false },
                 tooltip: {
                     enabled: hasData,
-                    backgroundColor: '#0F1422',
-                    borderColor: 'rgba(255, 255, 255, 0.12)',
+                    backgroundColor: '#0A0E18',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
                     borderWidth: 1,
                     padding: 10
                 }
@@ -528,9 +640,11 @@ function renderTradesTable(trades) {
         const isLoss = trade.pnl < -0.0001;
         const pnlColor = isWin ? 'text-emerald-400 font-bold' : (isLoss ? 'text-rose-400 font-bold' : 'text-slate-400');
         const pnlSign = trade.pnl > 0 ? '+' : '';
+        const rowHoverClass = isWin ? 'table-row-win' : (isLoss ? 'table-row-loss' : 'table-row-be');
+
         const sideBadge = trade.direction === 'LONG' 
-            ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="pulse-dot-green"></span> LONG</span>'
-            : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20"><span class="pulse-dot-red"></span> SHORT</span>';
+            ? '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25"><span class="pulse-dot-green"></span> LONG</span>'
+            : '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/25"><span class="pulse-dot-red"></span> SHORT</span>';
 
         const formattedDate = trade.trade_date 
             ? new Date(trade.trade_date).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -555,17 +669,17 @@ function renderTradesTable(trades) {
 
         const actionsHtml = isAdmin 
             ? `<div class="flex items-center justify-end gap-1">
-                <button onclick="openEditTradeModal(${trade.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5 rounded-lg hover:bg-white/[0.06]" title="Edit Trade #${trade.id}">
+                <button onclick="openEditTradeModal(${trade.id})" class="text-slate-400 hover:text-blue-400 hover:bg-blue-500/15 transition p-1.5 rounded-lg" title="Edit Trade #${trade.id}">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-                <button onclick="deleteTrade(${trade.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5 rounded-lg hover:bg-white/[0.06]" title="Delete Trade #${trade.id}">
+                <button onclick="deleteTrade(${trade.id})" class="text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 transition p-1.5 rounded-lg" title="Delete Trade #${trade.id}">
                     <i class="fa-regular fa-trash-can"></i>
                 </button>
                </div>`
             : `<span class="text-slate-600 text-[11px] font-mono-data">#${trade.id}</span>`;
 
         return `
-            <tr class="table-row-hover">
+            <tr class="${rowHoverClass}">
                 <td class="py-3 px-4 text-slate-300 font-mono-data">${formattedDate}</td>
                 <td class="py-3 px-4 font-bold text-white tracking-wide font-mono-data">${trade.pair}</td>
                 <td class="py-3 px-4">${sideBadge}</td>
@@ -586,7 +700,7 @@ function filterTrades(type) {
         const btn = document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1));
         if (btn) {
             if (f === type) {
-                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition';
+                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition hover:shadow-lg hover:shadow-blue-500/30';
             } else {
                 btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-black/40 border border-white/[0.08] text-slate-400 hover:text-white transition';
             }
@@ -894,13 +1008,13 @@ function showToast(msg, type = 'info') {
     toastMsg.textContent = msg;
 
     if (type === 'success') {
-        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#05281E]/95 text-emerald-300 border-emerald-500/40 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
+        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#04241B]/95 text-emerald-300 border-emerald-500/50 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
         toastIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
     } else if (type === 'error') {
-        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#2A080E]/95 text-rose-300 border-rose-500/40 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
+        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#27060C]/95 text-rose-300 border-rose-500/50 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
         toastIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-400"></i>';
     } else {
-        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#0E1422]/95 text-slate-200 border-white/10 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
+        toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border bg-[#0A101D]/95 text-slate-200 border-white/15 text-xs font-semibold flex items-center gap-2.5 transition duration-300';
         toastIcon.innerHTML = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
     }
 

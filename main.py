@@ -231,8 +231,19 @@ def get_trades(db: Session = Depends(get_db)):
     table_trades = list(reversed(trade_list))
 
     total_trades = len(trades)
+    total_pnl = round(current_bal - initial_balance, 2)
     win_rate = round((wins / total_trades * 100), 1) if total_trades > 0 else 0.0
     progress_pct = max(0, min(100, round(((current_bal - initial_balance) / (target_balance - initial_balance)) * 100, 1))) if target_balance > initial_balance else 0
+
+    # Calculate gross wins and gross losses for profit factor
+    gross_wins = sum(t.pnl for t in trades if t.pnl > 0)
+    gross_losses = abs(sum(t.pnl for t in trades if t.pnl < 0))
+    profit_factor = round(gross_wins / gross_losses, 2) if gross_losses > 0 else (round(gross_wins, 2) if gross_wins > 0 else 0.0)
+
+    # Real adherence percentages (0% if no trades yet, instead of fake 100%)
+    htf_pct = round((rule_htf_count / total_trades * 100), 1) if total_trades > 0 else 0.0
+    ltf_pct = round((rule_ltf_count / total_trades * 100), 1) if total_trades > 0 else 0.0
+    risk_pct = round((rule_risk_count / total_trades * 100), 1) if total_trades > 0 else 0.0
 
     return {
         "trades": table_trades,
@@ -241,18 +252,20 @@ def get_trades(db: Session = Depends(get_db)):
             "initial_balance": initial_balance,
             "target_balance": target_balance,
             "current_balance": round(current_bal, 2),
+            "total_pnl": total_pnl,
             "progress_pct": progress_pct,
             "total_trades": total_trades,
             "wins": wins,
             "losses": losses,
             "breakeven": breakeven,
             "win_rate": win_rate,
+            "profit_factor": profit_factor,
             "today_setups": today_setups_count,
             "max_daily_setups": int(os.getenv("MAX_DAILY_SETUPS", 2)),
             "rule_adherence": {
-                "htf_4h_pct": round((rule_htf_count / total_trades * 100), 1) if total_trades > 0 else 100,
-                "ltf_entry_pct": round((rule_ltf_count / total_trades * 100), 1) if total_trades > 0 else 100,
-                "risk_1pct_pct": round((rule_risk_count / total_trades * 100), 1) if total_trades > 0 else 100,
+                "htf_4h_pct": htf_pct,
+                "ltf_entry_pct": ltf_pct,
+                "risk_1pct_pct": risk_pct,
             }
         }
     }
