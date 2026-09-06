@@ -1,41 +1,118 @@
-/* Custom styles for Trading Target 10 to 100 tracker */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* Custom scrollbar */
+:root {
+    --bg-main: #080A0F;
+    --card-bg: rgba(18, 23, 34, 0.85);
+    --card-border: rgba(45, 55, 75, 0.6);
+    --accent-blue: #3B82F6;
+    --accent-emerald: #10B981;
+    --accent-rose: #F43F5E;
+    --accent-amber: #F59E0B;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-main);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+}
+
+.font-mono-data {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom modern scrollbars */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #0B0E14;
+    background: #080A0F;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #242C3D;
-    border-radius: 4px;
+    background: #232B3C;
+    border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background: #3B82F6;
 }
 
-/* Smooth chart containers */
-canvas {
-    max-width: 100%;
+/* Glass Card & Neon Glows */
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: all 0.25s ease;
 }
 
-/* Modal animation */
-#tradeModal > div {
-    animation: modalFadeIn 0.2s ease-out;
+.glass-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
 }
 
-@keyframes modalFadeIn {
-    from {
+.glow-emerald {
+    box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.3);
+}
+
+.glow-blue {
+    box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.3);
+}
+
+/* Modals & Backdrop Blur */
+.modal-overlay {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-container {
+    animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+    from { 
         opacity: 0;
-        transform: scale(0.95) translateY(10px);
+        transform: scale(0.96) translateY(8px);
     }
-    to {
+    to { 
         opacity: 1;
         transform: scale(1) translateY(0);
     }
+}
+
+/* Buttons with tactile feedback */
+button:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+/* Form controls */
+input, select, textarea {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #3B82F6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Shimmer on progress bar */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.progress-shimmer {
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite linear;
 }
