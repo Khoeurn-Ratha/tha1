@@ -1,11 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --bg-dark: #07090E;
-    --card-surface: rgba(14, 18, 27, 0.75);
-    --card-surface-hover: rgba(19, 25, 38, 0.85);
-    --border-subtle: rgba(255, 255, 255, 0.07);
-    --border-accent: rgba(59, 130, 246, 0.35);
+    --bg-dark: #06080E;
+    --card-surface: rgba(13, 17, 27, 0.72);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(59, 130, 246, 0.4);
     --neon-blue: #3B82F6;
     --neon-emerald: #10B981;
     --neon-rose: #F43F5E;
@@ -19,18 +18,87 @@
 body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: var(--bg-dark);
-    background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent 70%),
-        radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05), transparent 40%),
-        radial-gradient(circle at 0% 50%, rgba(99, 102, 241, 0.04), transparent 40%);
-    background-attachment: fixed;
     color: #E2E8F0;
     letter-spacing: -0.01em;
+    overflow-x: hidden;
+    min-height: 100vh;
 }
 
 .font-mono-data {
     font-family: 'JetBrains Mono', monospace;
     font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* ================= AMBIENT BACKGROUND & GRID ================= */
+.aurora-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Tech Trading Grid */
+.aurora-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 100%);
+}
+
+/* Floating Atmospheric Orbs */
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.65;
+}
+
+.orb-blue {
+    top: -15%;
+    left: 15%;
+    width: 650px;
+    height: 650px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(37, 99, 235, 0.05) 60%, transparent 80%);
+    animation: orbDrift1 20s infinite alternate ease-in-out;
+}
+
+.orb-emerald {
+    bottom: -15%;
+    right: 5%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.04) 60%, transparent 80%);
+    animation: orbDrift2 25s infinite alternate ease-in-out;
+}
+
+.orb-indigo {
+    top: 45%;
+    left: -15%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 75%);
+    animation: orbDrift3 18s infinite alternate ease-in-out;
+}
+
+@keyframes orbDrift1 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(60px, 40px) scale(1.1); }
+}
+
+@keyframes orbDrift2 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(-50px, -30px) scale(1.08); }
+}
+
+@keyframes orbDrift3 {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -50px) scale(1.05); }
 }
 
 /* Scrollbars */
@@ -44,7 +112,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 9999px;
 }
 
@@ -52,26 +120,26 @@ body {
     background: var(--neon-blue);
 }
 
-/* Glassmorphic Luxury Cards */
+/* ================= MODERN LUXURY CARDS ================= */
 .pro-card {
     background: var(--card-surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--border-subtle);
-    border-radius: 1rem;
+    border-radius: 1.25rem;
     box-shadow: 
-        0 10px 30px -10px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        0 14px 35px -10px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
 }
 
 .pro-card:hover {
-    border-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.15);
     box-shadow: 
-        0 16px 36px -10px rgba(0, 0, 0, 0.75),
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+        0 20px 45px -10px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 .card-top-glow::before {
@@ -80,21 +148,23 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(16, 185, 129, 0.6), transparent);
 }
 
-/* Goal Progress Bar & Shimmer */
+/* ================= GOAL PROGRESS BAR ================= */
 .goal-bar-track {
-    background: rgba(10, 14, 22, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+    background: rgba(6, 9, 16, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+    position: relative;
 }
 
 .goal-bar-fill {
-    background: linear-gradient(90deg, #2563EB 0%, #4F46E5 50%, #10B981 100%);
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+    background: linear-gradient(90deg, #2563EB 0%, #4F46E5 45%, #10B981 100%);
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.4);
     position: relative;
+    border-radius: 9999px;
 }
 
 .goal-bar-fill::after {
@@ -104,11 +174,24 @@ body {
     background: linear-gradient(
         90deg,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0.3) 50%,
         rgba(255, 255, 255, 0) 100%
     );
     background-size: 200% 100%;
     animation: shimmerGlow 2.5s infinite linear;
+}
+
+/* Glowing pointer at progress tip */
+.goal-bar-beacon {
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 0 10px #10B981, 0 0 20px #10B981;
 }
 
 @keyframes shimmerGlow {
@@ -116,43 +199,64 @@ body {
     100% { transform: translateX(100%); }
 }
 
-/* Pulsing Status Badges */
+/* ================= LIVE STATUS DOTS ================= */
 .pulse-dot-green {
-    width: 6px;
-    height: 6px;
+    width: 6.5px;
+    height: 6.5px;
     border-radius: 50%;
     background-color: #10B981;
     box-shadow: 0 0 8px #10B981;
-    animation: pulseGlow 2s infinite;
+    animation: pulseGlow 1.8s infinite;
 }
 
 .pulse-dot-red {
-    width: 6px;
-    height: 6px;
+    width: 6.5px;
+    height: 6.5px;
     border-radius: 50%;
     background-color: #F43F5E;
     box-shadow: 0 0 8px #F43F5E;
-    animation: pulseGlow 2s infinite;
+    animation: pulseGlow 1.8s infinite;
 }
 
 @keyframes pulseGlow {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.85); }
+    50% { opacity: 0.45; transform: scale(0.85); }
 }
 
-/* Modals */
+/* ================= MODERN MODAL DIALOGS ================= */
 .modal-backdrop {
-    background: rgba(3, 5, 8, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(3, 5, 10, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     animation: fadeIn 0.2s ease-out;
 }
 
 .modal-dialog {
     animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    background: #0E131E;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    background: rgba(12, 16, 26, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 
+        0 30px 80px -15px rgba(0, 0, 0, 0.9),
+        0 0 40px -10px rgba(59, 130, 246, 0.15),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Login Card Luxury Accent */
+.login-card-shell {
+    position: relative;
+}
+
+.login-card-shell::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 1.5rem;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(99, 102, 241, 0.2), rgba(16, 185, 129, 0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 @keyframes fadeIn {
@@ -163,7 +267,7 @@ body {
 @keyframes modalPop {
     from { 
         opacity: 0;
-        transform: scale(0.95) translateY(10px);
+        transform: scale(0.95) translateY(12px);
     }
     to { 
         opacity: 1;
@@ -171,31 +275,31 @@ body {
     }
 }
 
-/* Modern Form Inputs */
+/* Form Inputs */
 .pro-input {
-    background: rgba(8, 11, 18, 0.85) !important;
+    background: rgba(7, 10, 17, 0.9) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #FFFFFF !important;
     border-radius: 0.75rem !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .pro-input:focus {
     border-color: var(--neon-blue) !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
-    background: rgba(10, 14, 23, 0.95) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22) !important;
+    background: rgba(9, 13, 22, 0.98) !important;
 }
 
-/* Tactile Button Feedback */
+/* Button micro-interactions */
 button:active:not(:disabled) {
     transform: translateY(1px) scale(0.98);
 }
 
-/* Smooth Table Row Transitions */
+/* Table styling */
 .table-row-hover {
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    transition: background-color 0.15s ease;
 }
 
 .table-row-hover:hover {
-    background-color: rgba(255, 255, 255, 0.025);
+    background-color: rgba(255, 255, 255, 0.035);
 }

@@ -13,8 +13,8 @@
                 extend: {
                     colors: {
                         brand: {
-                            dark: '#07090E',
-                            surface: '#0E131E',
+                            dark: '#06080E',
+                            surface: '#0D111B',
                             border: 'rgba(255,255,255,0.08)',
                             blue: '#3B82F6',
                             emerald: '#10B981',
@@ -32,14 +32,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white relative">
+
+    <!-- Ambient Aurora & Tech Grid Background -->
+    <div class="aurora-bg">
+        <div class="orb orb-blue"></div>
+        <div class="orb orb-emerald"></div>
+        <div class="orb orb-indigo"></div>
+    </div>
 
     <!-- Top Navigation Bar -->
-    <header class="border-b border-white/[0.06] bg-[#0A0E17]/80 backdrop-blur-xl sticky top-0 z-40 transition">
+    <header class="border-b border-white/[0.06] bg-[#070A12]/85 backdrop-blur-xl sticky top-0 z-40 transition shadow-lg shadow-black/20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo -->
             <div class="flex items-center space-x-3.5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-400/20">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/25 border border-white/20">
                     <i class="fa-solid fa-chart-line text-white text-base"></i>
                 </div>
                 <div>
@@ -56,13 +63,13 @@
                 <div id="userBadgeContainer" class="flex items-center gap-2"></div>
 
                 <!-- Admin Action: Test Telegram -->
-                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Alerts" class="admin-only hidden px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-white/10 shadow-sm">
+                <button id="testTelegramBtn" onclick="testTelegram()" title="Test Telegram Bot Alerts" class="admin-only hidden px-3.5 py-2 rounded-xl bg-black/40 hover:bg-white/[0.06] text-xs font-semibold text-slate-300 transition flex items-center gap-2 border border-white/10 shadow-sm">
                     <i class="fa-brands fa-telegram text-sky-400 text-sm"></i>
                     <span class="hidden md:inline">Test Telegram</span>
                 </button>
 
                 <!-- Admin Action: Log Trade -->
-                <button id="navLogTradeBtn" onclick="openCreateTradeModal()" class="admin-only hidden px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center gap-2 border border-blue-400/30">
+                <button id="navLogTradeBtn" onclick="openCreateTradeModal()" class="admin-only hidden px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white text-xs font-bold shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center gap-2 border border-white/20">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Log Trade</span>
                 </button>
@@ -71,7 +78,7 @@
     </header>
 
     <!-- Viewer Read-Only Banner -->
-    <div id="viewerBanner" class="hidden bg-[#0D121F] border-b border-white/[0.06] px-4 py-2 text-center text-xs text-slate-300 flex items-center justify-center gap-2.5">
+    <div id="viewerBanner" class="hidden bg-[#0A0E1A]/90 border-b border-white/[0.06] px-4 py-2 text-center text-xs text-slate-300 flex items-center justify-center gap-2.5">
         <span class="px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 font-bold text-[10px] border border-blue-500/30">READ-ONLY MODE</span>
         <span>You are currently viewing in read-only mode. <button onclick="openLoginModal()" class="text-blue-400 font-semibold hover:text-blue-300 underline ml-1">Sign in with Admin</button> to log or edit trades.</span>
     </div>
@@ -97,7 +104,7 @@
                 </div>
 
                 <!-- Daily Setup Counter -->
-                <div class="flex items-center gap-4 bg-[#0A0D15]/90 border border-white/[0.08] px-5 py-3.5 rounded-2xl shadow-inner">
+                <div class="flex items-center gap-4 bg-[#080B13]/90 border border-white/[0.08] px-5 py-3.5 rounded-2xl shadow-inner">
                     <div class="text-right">
                         <div class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Today's Setups</div>
                         <div class="text-xl font-bold flex items-center justify-end gap-1.5 font-mono-data" id="todaySetupsDisplay">
@@ -120,8 +127,10 @@
                     <span id="progressPctText" class="text-blue-400 font-bold">0% Completed</span>
                     <span class="text-emerald-400 font-bold">$100.00 Target</span>
                 </div>
-                <div class="w-full h-3.5 goal-bar-track rounded-full overflow-hidden p-0.5">
-                    <div id="progressBar" class="h-full goal-bar-fill rounded-full transition-all duration-700" style="width: 0%"></div>
+                <div class="w-full h-3.5 goal-bar-track rounded-full p-0.5">
+                    <div id="progressBar" class="h-full goal-bar-fill transition-all duration-700 relative" style="width: 0%">
+                        <div class="goal-bar-beacon"></div>
+                    </div>
                 </div>
             </div>
 
@@ -129,7 +138,7 @@
             <div id="dailyLimitAlert" class="hidden mt-4 p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-rose-200 text-xs flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-rose-400 text-lg flex-shrink-0"></i>
                 <div>
-                    <span class="font-bold">Daily Limit Hit (2/2 Setups)!</span> You have executed your 2 allowed setups for today. Do not overtrade — protect your capital and psychology!
+                    <span class="font-bold">Daily Limit Hit (2/2 Setups)!</span> You have executed your 2 allowed setups for today. Do not overtrade — protect your capital and discipline!
                 </div>
             </div>
         </section>
@@ -218,15 +227,15 @@
                     <canvas id="cycleChart"></canvas>
                 </div>
                 <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/[0.06] text-center font-mono-data">
-                    <div class="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
+                    <div class="bg-black/40 p-2 rounded-xl border border-white/[0.06]">
                         <span class="text-slate-400 block text-[11px]">Wins</span>
                         <span class="text-emerald-400 font-bold text-sm" id="badgeWins">0</span>
                     </div>
-                    <div class="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
+                    <div class="bg-black/40 p-2 rounded-xl border border-white/[0.06]">
                         <span class="text-slate-400 block text-[11px]">Losses</span>
                         <span class="text-rose-400 font-bold text-sm" id="badgeLosses">0</span>
                     </div>
-                    <div class="bg-black/30 p-2 rounded-xl border border-white/[0.05]">
+                    <div class="bg-black/40 p-2 rounded-xl border border-white/[0.06]">
                         <span class="text-slate-400 block text-[11px]">B.E.</span>
                         <span class="text-slate-400 font-bold text-sm" id="badgeBE">0</span>
                     </div>
@@ -275,15 +284,15 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="filterTrades('all')" id="filterAll" class="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition">All</button>
-                    <button onclick="filterTrades('wins')" id="filterWins" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-white/[0.08] text-slate-400 hover:text-white transition">Wins</button>
-                    <button onclick="filterTrades('losses')" id="filterLosses" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-white/[0.08] text-slate-400 hover:text-white transition">Losses</button>
+                    <button onclick="filterTrades('wins')" id="filterWins" class="px-3 py-1 rounded-lg text-xs font-semibold bg-black/40 border border-white/[0.08] text-slate-400 hover:text-white transition">Wins</button>
+                    <button onclick="filterTrades('losses')" id="filterLosses" class="px-3 py-1 rounded-lg text-xs font-semibold bg-black/40 border border-white/[0.08] text-slate-400 hover:text-white transition">Losses</button>
                 </div>
             </div>
 
             <!-- Table Container -->
             <div class="overflow-x-auto rounded-xl border border-white/[0.06]">
                 <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-[#0A0E17] text-slate-400 uppercase text-[11px] font-semibold border-b border-white/[0.06]">
+                    <thead class="bg-[#080B13] text-slate-400 uppercase text-[11px] font-semibold border-b border-white/[0.06]">
                         <tr>
                             <th class="py-3 px-4">Date / Time</th>
                             <th class="py-3 px-4">Pair</th>
@@ -296,7 +305,7 @@
                             <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="tradesTableBody" class="divide-y divide-white/[0.04] bg-[#0A0D15]/60">
+                    <tbody id="tradesTableBody" class="divide-y divide-white/[0.04] bg-[#070A11]/60">
                         <tr>
                             <td colspan="9" class="text-center py-10 text-slate-500">
                                 <i class="fa-solid fa-spinner fa-spin text-lg mb-2 block text-blue-500"></i>
@@ -317,31 +326,45 @@
 
     <!-- ================= MODALS ================= -->
 
-    <!-- 1. CLEAN SECURE LOGIN MODAL (Zero Passwords Exposed) -->
+    <!-- 1. HIGH-END CINEMATIC LOGIN MODAL -->
     <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden p-4">
-        <div class="modal-dialog w-full max-w-sm rounded-2xl p-6 relative">
-            <div class="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
-                        <i class="fa-solid fa-shield-halved text-sm"></i>
+        <div class="login-card-shell modal-dialog w-full max-w-sm rounded-3xl p-6 relative overflow-hidden">
+            <!-- Ambient Card Glow -->
+            <div class="absolute -right-16 -top-16 w-36 h-36 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-5 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
+                        <i class="fa-solid fa-lock text-white text-sm"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-white">Account Authentication</h3>
-                        <p class="text-[11px] text-slate-400">Sign in with your credentials</p>
+                        <h3 class="text-sm font-bold text-white tracking-wide">Terminal Access</h3>
+                        <p class="text-[11px] text-slate-400 font-mono-data">GATEWAY // AUTHENTICATION</p>
                     </div>
                 </div>
-                <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white transition">
+                <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/[0.06]">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <!-- Role Selector Tabs (Only sets username, never exposes passwords) -->
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-black/40 border border-white/[0.08] rounded-xl mb-4 relative z-10">
+                <button type="button" id="tabAdmin" onclick="selectLoginRole('admin')" class="py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5">
+                    <span>👑 Admin</span>
+                </button>
+                <button type="button" id="tabUser" onclick="selectLoginRole('user')" class="py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                    <span>👁️ Viewer</span>
+                </button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
                 <!-- Username -->
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Username</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                        <input type="text" id="loginUsername" required placeholder="Enter username" class="pro-input w-full pl-9 pr-3 py-2 text-sm focus:outline-none">
+                        <input type="text" id="loginUsername" value="admin" required placeholder="Enter username" class="pro-input w-full pl-9 pr-3 py-2.5 text-sm focus:outline-none font-mono-data">
                     </div>
                 </div>
 
@@ -349,9 +372,9 @@
                 <div>
                     <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">Password</label>
                     <div class="relative">
-                        <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-                        <input type="password" id="loginPassword" required placeholder="••••••••" class="pro-input w-full pl-9 pr-9 py-2 text-sm focus:outline-none font-mono-data">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs">
+                        <i class="fa-solid fa-key absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" class="pro-input w-full pl-9 pr-10 py-2.5 text-sm focus:outline-none font-mono-data tracking-widest">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3 text-slate-500 hover:text-slate-300 text-xs transition">
                             <i id="passwordEyeIcon" class="fa-regular fa-eye"></i>
                         </button>
                     </div>
@@ -359,9 +382,9 @@
 
                 <!-- Submit Button -->
                 <div class="pt-2">
-                    <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2">
+                    <button type="submit" id="loginSubmitBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2 border border-white/20">
                         <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
-                        <span>Sign In</span>
+                        <span>Authenticate</span>
                     </button>
                 </div>
             </form>
@@ -487,7 +510,7 @@
 
                 <!-- Action Button -->
                 <div class="pt-2">
-                    <button type="submit" id="saveTradeBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2">
+                    <button type="submit" id="saveTradeBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:from-blue-500 hover:to-emerald-400 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 border border-white/20">
                         <i id="saveBtnIcon" class="fa-solid fa-paper-plane text-xs"></i>
                         <span id="saveBtnText">Save Trade & Send to Telegram</span>
                     </button>

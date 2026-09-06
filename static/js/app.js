@@ -97,7 +97,7 @@ function renderAuthUI() {
                     <i class="fa-solid fa-eye text-xs"></i>
                     <span class="hidden sm:inline">Viewer</span>
                 </div>
-                <button onclick="openLoginModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-white/10 transition flex items-center gap-1.5 shadow-sm">
+                <button onclick="openLoginModal()" class="px-3.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white font-bold text-xs border border-white/10 transition flex items-center gap-1.5 shadow-sm">
                     <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
                     <span>Sign In</span>
                 </button>
@@ -106,6 +106,25 @@ function renderAuthUI() {
     }
 
     renderTradesTable(allTradesData);
+}
+
+// Select role tab in login modal
+function selectLoginRole(role) {
+    const tabAdmin = document.getElementById('tabAdmin');
+    const tabUser = document.getElementById('tabUser');
+    const usernameInput = document.getElementById('loginUsername');
+
+    if (!tabAdmin || !tabUser || !usernameInput) return;
+
+    if (role === 'admin') {
+        usernameInput.value = 'admin';
+        tabAdmin.className = 'py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+        tabUser.className = 'py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+    } else {
+        usernameInput.value = 'user';
+        tabUser.className = 'py-1.5 text-xs font-bold rounded-lg transition bg-blue-600 text-white shadow-sm flex items-center justify-center gap-1.5';
+        tabAdmin.className = 'py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+    }
 }
 
 // Toggle password visibility in login modal
@@ -279,10 +298,10 @@ function renderCharts(balanceHistory, stats) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#121826',
+                    backgroundColor: '#0F1422',
                     titleColor: '#F8FAFC',
                     bodyColor: '#CBD5E1',
-                    borderColor: '#334155',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
                     borderWidth: 1,
                     padding: 10,
                     callbacks: {
@@ -294,11 +313,11 @@ function renderCharts(balanceHistory, stats) {
             },
             scales: {
                 x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
                     ticks: { color: '#64748B', font: { size: 10, family: 'JetBrains Mono' } }
                 },
                 y: {
-                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
                     ticks: {
                         color: '#64748B',
                         font: { size: 10, family: 'JetBrains Mono' },
@@ -316,7 +335,7 @@ function renderCharts(balanceHistory, stats) {
 
     const hasData = (wins + losses + breakeven) > 0;
     const cycleData = hasData ? [wins, losses, breakeven] : [1];
-    const cycleColors = hasData ? ['#10B981', '#F43F5E', '#64748B'] : ['#1A2234'];
+    const cycleColors = hasData ? ['#10B981', '#F43F5E', '#64748B'] : ['#141A28'];
 
     if (cycleChartInstance) cycleChartInstance.destroy();
 
@@ -339,8 +358,8 @@ function renderCharts(balanceHistory, stats) {
                 legend: { display: false },
                 tooltip: {
                     enabled: hasData,
-                    backgroundColor: '#121826',
-                    borderColor: '#334155',
+                    backgroundColor: '#0F1422',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
                     borderWidth: 1,
                     padding: 10
                 }
@@ -407,10 +426,10 @@ function renderTradesTable(trades) {
 
         const actionsHtml = isAdmin 
             ? `<div class="flex items-center justify-end gap-1">
-                <button onclick="openEditTradeModal(${trade.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5 rounded-lg hover:bg-white/[0.05]" title="Edit Trade #${trade.id}">
+                <button onclick="openEditTradeModal(${trade.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5 rounded-lg hover:bg-white/[0.06]" title="Edit Trade #${trade.id}">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-                <button onclick="deleteTrade(${trade.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5 rounded-lg hover:bg-white/[0.05]" title="Delete Trade #${trade.id}">
+                <button onclick="deleteTrade(${trade.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5 rounded-lg hover:bg-white/[0.06]" title="Delete Trade #${trade.id}">
                     <i class="fa-regular fa-trash-can"></i>
                 </button>
                </div>`
@@ -441,7 +460,7 @@ function filterTrades(type) {
             if (f === type) {
                 btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition';
             } else {
-                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 border border-white/[0.08] text-slate-400 hover:text-white transition';
+                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-black/40 border border-white/[0.08] text-slate-400 hover:text-white transition';
             }
         }
     });
@@ -488,7 +507,7 @@ async function handleLogin(e) {
     const btn = document.getElementById('loginSubmitBtn');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Signing In...`;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Authenticating...</span>`;
 
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -501,7 +520,7 @@ async function handleLogin(e) {
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Invalid username or password.');
+        if (!res.ok) throw new Error(data.detail || 'Invalid credentials.');
 
         currentUser.token = data.token;
         currentUser.role = data.role;
@@ -516,7 +535,7 @@ async function handleLogin(e) {
         document.getElementById('loginForm').reset();
         closeLoginModal();
         renderAuthUI();
-        showToast(`Signed in as ${data.displayName}`, 'success');
+        showToast(`Authenticated as ${data.displayName}`, 'success');
     } catch (err) {
         showToast(err.message, 'error');
     } finally {
@@ -531,7 +550,7 @@ async function logout() {
     } catch (e) {}
     setViewerState();
     renderAuthUI();
-    showToast('Signed out. Viewing in Read-Only mode.', 'info');
+    showToast('Signed out. Switched to Viewer mode.', 'info');
 }
 
 // ----------------- TRADE CREATE & EDIT MODALS -----------------
