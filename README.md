@@ -53,11 +53,11 @@ MAX_DAILY_SETUPS=2
 
 ### 3. Start the Web Server
 ```powershell
-python main.py
+python app.py
 ```
 *Or using uvicorn directly:*
 ```powershell
-uvicorn main:app --reload --port 8000
+uvicorn app:app --reload --port 8000
 ```
 
 Open your browser and navigate to:
@@ -97,7 +97,7 @@ This project includes [`render.yaml`](render.yaml) for 1-click Blueprint deploym
 2. Create a **Web Service** connected to your repository:
    - **Environment:** `Python`
    - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - **Start Command:** `uvicorn app:app --host 0.0.0.0 --port $PORT`
 3. Under **Environment Variables**, add:
    - `DATABASE_URL`: Your Render PostgreSQL Internal Database URL
    - `TELEGRAM_BOT_TOKEN`: Your bot token
