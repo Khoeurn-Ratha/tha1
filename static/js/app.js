@@ -45,7 +45,7 @@ function initVibrantMarketBackground() {
         mouse.y = -1000;
     });
 
-    // 1. Floating Candlesticks (Green & Red Market Bars)
+    // 1. Floating Candlesticks (Subtle Ambient Market Watermarks)
     let candlesticks = [];
     class Candlestick {
         constructor() {
@@ -55,14 +55,14 @@ function initVibrantMarketBackground() {
         reset(initial = false) {
             this.x = Math.random() * width;
             this.y = initial ? Math.random() * height : height + 50;
-            this.vy = -(Math.random() * 0.4 + 0.2); // Slowly rises up
-            this.vx = (Math.random() - 0.5) * 0.15;
+            this.vy = -(Math.random() * 0.15 + 0.08); // Very gentle slow rise
+            this.vx = (Math.random() - 0.5) * 0.08;
             this.isBullish = Math.random() > 0.45;
-            this.bodyHeight = Math.random() * 28 + 12;
-            this.bodyWidth = Math.random() * 6 + 4;
-            this.wickTop = Math.random() * 12 + 4;
-            this.wickBottom = Math.random() * 12 + 4;
-            this.alpha = Math.random() * 0.22 + 0.1;
+            this.bodyHeight = Math.random() * 24 + 10;
+            this.bodyWidth = Math.random() * 5 + 3;
+            this.wickTop = Math.random() * 10 + 3;
+            this.wickBottom = Math.random() * 10 + 3;
+            this.alpha = Math.random() * 0.06 + 0.03; // Soft watermark
             this.color = this.isBullish ? '#10B981' : '#F43F5E';
         }
 
@@ -77,7 +77,7 @@ function initVibrantMarketBackground() {
             ctx.globalAlpha = this.alpha;
             ctx.strokeStyle = this.color;
             ctx.fillStyle = this.color;
-            ctx.lineWidth = 1.2;
+            ctx.lineWidth = 1;
 
             // Upper Wick
             ctx.beginPath();
@@ -103,12 +103,12 @@ function initVibrantMarketBackground() {
         constructor() {
             this.x = Math.random() * width;
             this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 0.8;
-            this.vy = (Math.random() - 0.5) * 0.8;
-            this.radius = Math.random() * 2.5 + 1.2;
+            this.vx = (Math.random() - 0.5) * 0.35;
+            this.vy = (Math.random() - 0.5) * 0.35;
+            this.radius = Math.random() * 1.5 + 0.8;
             const colors = ['#10B981', '#06B6D4', '#3B82F6', '#818CF8'];
             this.color = colors[Math.floor(Math.random() * colors.length)];
-            this.alpha = Math.random() * 0.6 + 0.3;
+            this.alpha = Math.random() * 0.2 + 0.08;
         }
 
         update() {
@@ -123,8 +123,8 @@ function initVibrantMarketBackground() {
             if (dist < mouse.radius) {
                 const force = (mouse.radius - dist) / mouse.radius;
                 const angle = Math.atan2(dy, dx);
-                this.x -= Math.cos(angle) * force * 3;
-                this.y -= Math.sin(angle) * force * 3;
+                this.x -= Math.cos(angle) * force * 1.8;
+                this.y -= Math.sin(angle) * force * 1.8;
             }
         }
 
@@ -134,8 +134,6 @@ function initVibrantMarketBackground() {
             ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
             ctx.fillStyle = this.color;
             ctx.globalAlpha = this.alpha;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = this.color;
             ctx.fill();
             ctx.restore();
         }
@@ -143,11 +141,11 @@ function initVibrantMarketBackground() {
 
     function initEntities() {
         particles = [];
-        const count = Math.min(80, Math.floor((width * height) / 16000));
+        const count = Math.min(32, Math.floor((width * height) / 32000));
         for (let i = 0; i < count; i++) particles.push(new Particle());
 
         candlesticks = [];
-        const candleCount = Math.min(25, Math.floor(width / 60));
+        const candleCount = Math.min(10, Math.floor(width / 120));
         for (let i = 0; i < candleCount; i++) candlesticks.push(new Candlestick());
     }
     initEntities();
@@ -164,7 +162,7 @@ function initVibrantMarketBackground() {
         });
 
         // 2. Draw connecting constellation lines
-        const maxDist = 135;
+        const maxDist = 120;
         for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
                 const dx = particles[i].x - particles[j].x;
@@ -176,9 +174,9 @@ function initVibrantMarketBackground() {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
-                    const alpha = (1 - dist / maxDist) * 0.22;
+                    const alpha = (1 - dist / maxDist) * 0.07;
                     ctx.strokeStyle = `rgba(59, 130, 246, ${alpha})`;
-                    ctx.lineWidth = 1.1;
+                    ctx.lineWidth = 0.8;
                     ctx.stroke();
                     ctx.restore();
                 }
@@ -191,32 +189,32 @@ function initVibrantMarketBackground() {
             p.draw();
         });
 
-        // 4. Undulating market sine wave with glow
-        wavePhase += 0.018;
+        // 4. Undulating market sine wave with soft glow
+        wavePhase += 0.008;
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(0, height);
         for (let x = 0; x <= width; x += 12) {
-            const y = height - 45 + Math.sin(x * 0.006 + wavePhase) * 24 + Math.cos(x * 0.012 - wavePhase * 0.8) * 14;
+            const y = height - 45 + Math.sin(x * 0.006 + wavePhase) * 20 + Math.cos(x * 0.012 - wavePhase * 0.8) * 10;
             ctx.lineTo(x, y);
         }
         ctx.lineTo(width, height);
         ctx.closePath();
         const waveGradient = ctx.createLinearGradient(0, height - 90, 0, height);
-        waveGradient.addColorStop(0, 'rgba(16, 185, 129, 0.06)');
-        waveGradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
+        waveGradient.addColorStop(0, 'rgba(16, 185, 129, 0.03)');
+        waveGradient.addColorStop(1, 'rgba(59, 130, 246, 0.005)');
         ctx.fillStyle = waveGradient;
         ctx.fill();
 
-        // Wave top glowing line
+        // Wave top subtle line
         ctx.beginPath();
         for (let x = 0; x <= width; x += 12) {
-            const y = height - 45 + Math.sin(x * 0.006 + wavePhase) * 24 + Math.cos(x * 0.012 - wavePhase * 0.8) * 14;
+            const y = height - 45 + Math.sin(x * 0.006 + wavePhase) * 20 + Math.cos(x * 0.012 - wavePhase * 0.8) * 10;
             if (x === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
+        ctx.lineWidth = 1;
         ctx.stroke();
         ctx.restore();
 
@@ -621,12 +619,23 @@ function renderTradesTable(trades) {
         filtered = trades.filter(t => t.pnl < 0);
     }
 
+    // Update dynamic counter badge and footer info
+    const countBadge = document.getElementById('journalCountBadge');
+    if (countBadge) {
+        countBadge.textContent = `${filtered.length} Trade${filtered.length === 1 ? '' : 's'}`;
+    }
+    const footerInfo = document.getElementById('journalFooterInfo');
+    if (footerInfo) {
+        footerInfo.textContent = `Showing ${filtered.length} of ${trades.length} recorded trades`;
+    }
+
     if (filtered.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center py-10 text-slate-500">
-                    <i class="fa-solid fa-folder-open text-2xl mb-2 block opacity-40"></i>
-                    No trades logged yet. ${currentUser.role === 'admin' ? 'Click <b>"Log Trade"</b> to record your first trade!' : ''}
+                <td colspan="9" class="text-center py-12 text-slate-500 font-mono-data">
+                    <i class="fa-solid fa-folder-open text-3xl mb-3 block opacity-30 text-slate-400"></i>
+                    <p class="text-sm font-semibold text-slate-300">No trade records found</p>
+                    <p class="text-xs text-slate-500 mt-1">${currentUser.role === 'admin' ? 'Click <b class="text-blue-400">"Log Trade"</b> to record your first setup.' : 'No trades have been recorded yet.'}</p>
                 </td>
             </tr>
         `;
@@ -659,13 +668,13 @@ function renderTradesTable(trades) {
         `;
 
         const photoHtml = trade.image_url 
-            ? `<button onclick="openImageModal('${trade.image_url}')" class="group relative block w-10 h-8 rounded-lg border border-white/10 overflow-hidden bg-black/40 hover:border-blue-500 transition shadow-sm">
+            ? `<button onclick="openImageModal('${trade.image_url}')" class="group relative block w-10 h-8 rounded-lg border border-white/10 overflow-hidden bg-black/40 hover:border-blue-500 transition shadow-sm mx-auto">
                 <img src="${trade.image_url}" alt="chart" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                     <i class="fa-solid fa-expand text-[10px] text-white"></i>
                 </div>
                </button>`
-            : `<span class="text-slate-600 text-[11px] italic">None</span>`;
+            : `<span class="text-slate-600 text-[11px] italic block text-center">None</span>`;
 
         const actionsHtml = isAdmin 
             ? `<div class="flex items-center justify-end gap-1">
@@ -676,19 +685,19 @@ function renderTradesTable(trades) {
                     <i class="fa-regular fa-trash-can"></i>
                 </button>
                </div>`
-            : `<span class="text-slate-600 text-[11px] font-mono-data">#${trade.id}</span>`;
+            : `<span class="text-slate-500 text-[11px] font-mono-data">#${trade.id}</span>`;
 
         return `
-            <tr class="${rowHoverClass}">
-                <td class="py-3 px-4 text-slate-300 font-mono-data">${formattedDate}</td>
-                <td class="py-3 px-4 font-bold text-white tracking-wide font-mono-data">${trade.pair}</td>
-                <td class="py-3 px-4">${sideBadge}</td>
-                <td class="py-3 px-4 text-slate-400 font-mono-data">Setup #${trade.setup_number || 1}</td>
-                <td class="py-3 px-4 font-mono-data ${pnlColor}">${pnlSign}$${trade.pnl.toFixed(2)}</td>
-                <td class="py-3 px-4 font-semibold text-slate-200 font-mono-data">$${trade.running_balance ? trade.running_balance.toFixed(2) : '-'}</td>
-                <td class="py-3 px-4">${rulesList}</td>
-                <td class="py-3 px-4">${photoHtml}</td>
-                <td class="py-3 px-4 text-right">${actionsHtml}</td>
+            <tr class="${rowHoverClass} border-b border-white/[0.04]">
+                <td class="py-3.5 px-6 text-slate-300 font-mono-data">${formattedDate}</td>
+                <td class="py-3.5 px-5 font-bold text-white tracking-wide font-mono-data">${trade.pair}</td>
+                <td class="py-3.5 px-5">${sideBadge}</td>
+                <td class="py-3.5 px-5 text-slate-400 font-mono-data">Setup #${trade.setup_number || 1}</td>
+                <td class="py-3.5 px-5 font-mono-data ${pnlColor}">${pnlSign}$${trade.pnl.toFixed(2)}</td>
+                <td class="py-3.5 px-5 font-semibold text-slate-200 font-mono-data">$${trade.running_balance ? trade.running_balance.toFixed(2) : '-'}</td>
+                <td class="py-3.5 px-5">${rulesList}</td>
+                <td class="py-3.5 px-5 text-center">${photoHtml}</td>
+                <td class="py-3.5 px-6 text-right">${actionsHtml}</td>
             </tr>
         `;
     }).join('');
@@ -700,9 +709,9 @@ function filterTrades(type) {
         const btn = document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1));
         if (btn) {
             if (f === type) {
-                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition hover:shadow-lg hover:shadow-blue-500/30';
+                btn.className = 'px-3.5 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white transition shadow-sm hover:shadow-blue-500/30';
             } else {
-                btn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-black/40 border border-white/[0.08] text-slate-400 hover:text-white transition';
+                btn.className = 'px-3.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/[0.05] transition';
             }
         }
     });
